@@ -11,3 +11,7 @@ To add templates into your Zabbix distribution:
 4 - Select the downloaded.xml and click on "Import" button
 
 5 - Enjoy your brand new template!
+
+# mib2zabbix
+
+https://github.com/OddanN/mib2zabbix
