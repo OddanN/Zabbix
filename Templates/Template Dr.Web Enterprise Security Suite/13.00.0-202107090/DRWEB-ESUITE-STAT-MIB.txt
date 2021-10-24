@@ -1,0 +1,1127 @@
+DRWEB-ESUITE-STAT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    enterpriseSuite
+        FROM DRWEB-ESUITE-NOTIFICATIONS-MIB
+    TEXTUAL-CONVENTION, DateAndTime, TruthValue, MacAddress
+        FROM SNMPv2-TC
+    MODULE-COMPLIANCE, OBJECT-GROUP
+        FROM SNMPv2-CONF
+    CounterBasedGauge64
+        FROM HCNUM-TC
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32, Counter64
+        FROM SNMPv2-SMI;
+    
+stat MODULE-IDENTITY
+    LAST-UPDATED  "202106091412Z"
+    ORGANIZATION  "Doctor Web, Ltd."
+    CONTACT-INFO  "email: mibeditor@drweb.com"
+    DESCRIPTION   "Doctor Web Enerprise Suite Statistics variables MIB."
+    REVISION      "202106091412Z"
+    DESCRIPTION   "Doctor Web Enerprise Suite Statistics variables MIB (2021-06-09)."
+    ::= { enterpriseSuite 5 }
+
+compliance OBJECT IDENTIFIER ::= { stat 1 }
+    
+drwebEsuiteStatisticsCompliance MODULE-COMPLIANCE
+    STATUS  current
+    DESCRIPTION "The compliance statement for Doctor Web Enterprise Suite Statistics."
+    MODULE
+    MANDATORY-GROUPS { drwebEsuiteStatisticsGroup }
+    ::= { compliance 1 }
+    
+ESuiteClientType ::= TEXTUAL-CONVENTION
+    STATUS        current
+    DESCRIPTION   "Client type."
+    SYNTAX        INTEGER { unknown(1), station(2), newbie(3), installer(4), server(5), proxy(6) }
+
+
+misc OBJECT IDENTIFIER ::= { stat 2 } -- Miscellaneous basic data
+
+process OBJECT IDENTIFIER ::= { misc 1 } -- Server process information
+
+upTime OBJECT-TYPE
+    SYNTAX       Integer32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Server uptime in seconds"
+                 ::= { process 1 }
+
+startTime OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Server start time (GMT)"
+                 ::= { process 2 }
+
+cpuUsage OBJECT-TYPE
+    SYNTAX       Integer32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Server process CPU usage"
+                 ::= { process 3 }
+
+srvFlavour OBJECT-TYPE
+    SYNTAX       Integer32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Enterprise Server flavour"
+                 ::= { process 4 }
+
+isESuite OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Is this server Enterprise Suite one"
+                 ::= { process 5 }
+
+isESuiteSE OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Is this server Special Edition Enterprise Suite one"
+                 ::= { process 6 }
+
+isESuiteKatana OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Is this server Enterprise Katana one"
+                 ::= { process 7 }
+
+isAVDesk OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Is this server AV-Desk one"
+                 ::= { process 8 }
+
+sys OBJECT IDENTIFIER ::= { misc 2 } -- System information
+
+nowTime OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Current time (GMT)"
+                 ::= { sys 1 }
+
+cpuNumber OBJECT-TYPE
+    SYNTAX       Integer32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "CPU number"
+                 ::= { sys 2 }
+
+machineName OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Computer name"
+                 ::= { sys 3 }
+
+nodeName OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Computer DNS name"
+                 ::= { sys 4 }
+
+supportIPv4 OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Is operating system suppoorts IPv4"
+                 ::= { sys 5 }
+
+supportIPv6 OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Is operating system suppoorts IPv6"
+                 ::= { sys 6 }
+
+loadAverage OBJECT-TYPE
+    SYNTAX       Integer32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "System load average in hundredths, three instances (.1 .2 .3)"
+                 ::= { sys 7 }
+
+inet OBJECT IDENTIFIER ::= { misc 3 } -- Internet traffic information
+
+httpUpdate OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "HTTP update traffic: .1 sent bytes, .2 recieved bytes, .3 OK requests, .4 failed requests"
+                 ::= { inet 1 }
+
+httpWebStatistics OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "HTTP Web Statistics traffic: .1 sent bytes, .2 recieved bytes, .3 OK requests, .4 failed requests"
+                 ::= { inet 2 }
+
+messenger OBJECT IDENTIFIER ::= { misc 4 } -- Messenger statistics
+
+totalMessages OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total messages generated"
+                 ::= { messenger 3 }
+
+sentMessages OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Sent messages"
+                 ::= { messenger 4 }
+
+failedMessages OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Messages failed to send"
+                 ::= { messenger 5 }
+
+totalSize OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total messages size"
+                 ::= { messenger 6 }
+
+fileCache OBJECT IDENTIFIER ::= { misc 5 } -- File cache statistics
+
+hint OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of hits"
+                 ::= { fileCache 1 }
+
+missed OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of missed files"
+                 ::= { fileCache 2 }
+
+items OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total files in cache"
+                 ::= { fileCache 3 }
+
+invalid OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Invalid files in cache"
+                 ::= { fileCache 4 }
+
+error OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of errors"
+                 ::= { fileCache 5 }
+
+cacheSize OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Current cache size"
+                 ::= { fileCache 6 }
+
+memorySize OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Current memory usage"
+                 ::= { fileCache 7 }
+
+requestedBytes OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total bytes request from cache"
+                 ::= { fileCache 8 }
+
+savedBytes OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total saved (not read from disk) bytes"
+                 ::= { fileCache 9 }
+
+maxCacheSize OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Maximum cache size"
+                 ::= { fileCache 10 }
+
+maxMemorySize OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Maximum memory usage"
+                 ::= { fileCache 11 }
+
+repository OBJECT IDENTIFIER ::= { misc 6 } -- Repository statistics
+
+gus OBJECT IDENTIFIER ::= { repository 1 } -- Repository download statistics
+
+added OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "New files added"
+                 ::= { gus 1 }
+
+replaced OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Files replaced"
+                 ::= { gus 2 }
+
+removed OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Files removed"
+                 ::= { gus 3 }
+
+distribute OBJECT IDENTIFIER ::= { repository 2 } -- Repository file distribution statistics
+
+agent OBJECT IDENTIFIER ::= { distribute 1 } -- Repository file distribution to clients statistics
+
+neighbor OBJECT IDENTIFIER ::= { distribute 2 } -- Repository file distribution to neighbor statistics
+
+install OBJECT IDENTIFIER ::= { distribute 3 } -- Repository file distribution to installer statistics
+
+agentFiles OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of files sent to clients"
+                 ::= { agent 1 }
+
+agentBytes OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of bytes sent to clients"
+                 ::= { agent 2 }
+
+neighborFiles OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of files sent to neighbors"
+                 ::= { neighbor 1 }
+
+neighborBytes OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of bytes sent to neighbors"
+                 ::= { neighbor 2 }
+
+installFiles OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of files sent to installers"
+                 ::= { install 1 }
+
+installBytes OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of bytes sent to installers"
+                 ::= { install 2 }
+
+dwcp OBJECT IDENTIFIER ::= { stat 3 } -- DWCP information
+
+clients OBJECT IDENTIFIER ::= { dwcp 1 } -- DWCP clients information
+
+clientsOnline OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total online clients"
+                 ::= { clients 1 }
+
+clientsTotal OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total connected clients since start"
+                 ::= { clients 2 }
+
+clientsMaximum OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Maximum connected clients"
+                 ::= { clients 3 }
+
+nowClients OBJECT IDENTIFIER ::= { clients 4 } -- DWCP clients information
+
+nowLinks OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of connected servers"
+                 ::= { nowClients 1 }
+
+nowAgents OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of connected agents"
+                 ::= { nowClients 2 }
+
+nowNewbies OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of connected newbies"
+                 ::= { nowClients 3 }
+
+nowInstallers OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of connected installers"
+                 ::= { nowClients 4 }
+
+nowProxies OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Number of connected proxies"
+                 ::= { nowClients 5 }
+
+cluster OBJECT IDENTIFIER ::= { dwcp 2 } -- DWCP cluster information
+
+clusterBytesIn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total bytes recieved"
+                 ::= { cluster 1 }
+
+clusterBytesOut OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total bytes sent"
+                 ::= { cluster 2 }
+
+clusterMessagesIn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total messages recieved"
+                 ::= { cluster 3 }
+
+clusterMessagesOut OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total messages sent"
+                 ::= { cluster 4 }
+
+io OBJECT IDENTIFIER ::= { dwcp 3 } -- DWCP client I/O information
+
+bytesIn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total bytes recieved"
+                 ::= { io 1 }
+
+bytesOut OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total bytes sent"
+                 ::= { io 2 }
+
+bytesInUn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total uncompressed bytes recieved"
+                 ::= { io 3 }
+
+bytesOutUn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total uncompressed bytes sent"
+                 ::= { io 4 }
+
+packetsIn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total packets recieved"
+                 ::= { io 5 }
+
+packetsOut OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total packets sent"
+                 ::= { io 6 }
+
+packetsInUn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total uncompressed packets recieved"
+                 ::= { io 7 }
+
+packetsOutUn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total uncompressed packets sent"
+                 ::= { io 8 }
+
+maxPacketIn OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Maximum recieved packet size"
+                 ::= { io 9 }
+
+maxPacketOut OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Maximum sent packet size"
+                 ::= { io 10 }
+
+maxPacketInUn OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Maximum recieved uncompressed packet size"
+                 ::= { io 11 }
+
+maxPacketOutUn OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Maximum sent uncompressed packet size"
+                 ::= { io 12 }
+
+minPacketIn OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Minimum recieved packet size"
+                 ::= { io 13 }
+
+minPacketOut OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Minimum sent packet size"
+                 ::= { io 14 }
+
+minPacketInUn OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Minimum recieved uncompressed packet size"
+                 ::= { io 15 }
+
+minPacketOutUn OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Minimum sent uncompressed packet size"
+                 ::= { io 16 }
+
+avePacketIn OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Average recieved packet size"
+                 ::= { io 17 }
+
+avePacketOut OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Average sent packet size"
+                 ::= { io 18 }
+
+avePacketInUn OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Average recieved uncompressed packet size"
+                 ::= { io 19 }
+
+avePacketOutUn OBJECT-TYPE
+    SYNTAX       CounterBasedGauge64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Average sent uncompressed packet size"
+                 ::= { io 20 }
+
+mcast OBJECT IDENTIFIER ::= { dwcp 4 } -- DWCP multicast update information
+
+mcBytesIn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total bytes recieved"
+                 ::= { mcast 1 }
+
+mcBytesOut OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total bytes sent"
+                 ::= { mcast 2 }
+
+mcPacketsIn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total packets recieved"
+                 ::= { mcast 3 }
+
+mcPacketsOut OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total packets sent"
+                 ::= { mcast 4 }
+
+socks OBJECT IDENTIFIER ::= { dwcp 5 } -- Sockets information
+
+accepted OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total accepted sockets"
+                 ::= { socks 1 }
+
+closed OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total closed sockets"
+                 ::= { socks 2 }
+
+listen OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total listen sockets"
+                 ::= { socks 3 }
+
+discovery OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total discovery sockets"
+                 ::= { socks 4 }
+
+online OBJECT IDENTIFIER ::= { dwcp 6 } -- DWCP online clients
+
+clNumber OBJECT-TYPE
+    SYNTAX       Integer32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total online clients"
+                 ::= { online 1 }
+
+clTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF ClEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+    "A list of client entries. The number of entries is given by the value of clNumber."
+    ::= { online 2 }
+
+clEntry OBJECT-TYPE
+    SYNTAX ClEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+    "An entry containing management information applicable to a
+         particular client."
+    INDEX { clIndex }
+    ::= { clTable 1 }
+
+ClEntry ::=
+    SEQUENCE {
+ 	clIndex	 Integer32,
+ 	clId	 OCTET STRING,
+ 	clAddress	 OCTET STRING,
+ 	clType	 ESuiteClientType,
+ 	clName	 OCTET STRING,
+ 	clRealName	 OCTET STRING,
+ 	clDescr	 OCTET STRING,
+ 	clSID	 OCTET STRING,
+ 	clMAC	 MacAddress,
+ 	clLDAPDN	 OCTET STRING,
+ 	clConnected	 DateAndTime,
+ 	clExpiration	 DateAndTime,
+ 	clBlockBegin	 DateAndTime,
+ 	clBlockEnd	 ESuiteTimestamp,
+ 	clBytesIn	 Counter64,
+ 	clBytesOut	 Counter64,
+ 	clUnBytesIn	 Counter64,
+ 	clUnBytesOut	 Counter64,
+ 	clProtoVersion	 OCTET STRING,
+ 	clPlatform	 OCTET STRING,
+ 	clPlatformNumber	 Counter64,
+ 	clDateError	 TruthValue,
+ 	clKey	 OCTET STRING
+    }
+
+clIndex OBJECT-TYPE
+    SYNTAX Integer32 (1..2147483647)
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Client index"
+    ::= { clEntry 1 }
+
+clId OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client ID"
+                 ::= { clEntry 2 }
+
+clAddress OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client address"
+                 ::= { clEntry 3 }
+
+clType OBJECT-TYPE
+    SYNTAX       ESuiteClientType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client type"
+                 ::= { clEntry 4 }
+
+clName OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client name"
+                 ::= { clEntry 5 }
+
+clRealName OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client real addresses received over drwcsd-proxy"
+                 ::= { clEntry 6 }
+
+clDescr OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client computer description (for Windows only)"
+                 ::= { clEntry 7 }
+
+clSID OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client SID"
+                 ::= { clEntry 8 }
+
+clMAC OBJECT-TYPE
+    SYNTAX       MacAddress
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client MAC"
+                 ::= { clEntry 9 }
+
+clLDAPDN OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client LDAP distinguished name"
+                 ::= { clEntry 10 }
+
+clConnected OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client connection time"
+                 ::= { clEntry 11 }
+
+clExpiration OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client expiration time"
+                 ::= { clEntry 12 }
+
+clBlockBegin OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client blocking begin time"
+                 ::= { clEntry 13 }
+
+clBlockEnd OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client blocking end time"
+                 ::= { clEntry 14 }
+
+clBytesIn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client incoming bytes"
+                 ::= { clEntry 15 }
+
+clBytesOut OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client outgoing bytes"
+                 ::= { clEntry 16 }
+
+clUnBytesIn OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client incoming uncompressed bytes"
+                 ::= { clEntry 17 }
+
+clUnBytesOut OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client outgoing uncompressed bytes"
+                 ::= { clEntry 18 }
+
+clProtoVersion OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client protocol version"
+                 ::= { clEntry 19 }
+
+clPlatform OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client platform string"
+                 ::= { clEntry 20 }
+
+clPlatformNumber OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client platform number"
+                 ::= { clEntry 21 }
+
+clDateError OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client date error flag"
+                 ::= { clEntry 22 }
+
+clKey OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE(16))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Client license key"
+                 ::= { clEntry 23 }
+
+repository OBJECT IDENTIFIER ::= { stat 4 } -- Repository information
+
+productsNumber OBJECT-TYPE
+    SYNTAX       Integer32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total products in repository"
+                 ::= { repository 1 }
+
+productTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF ClEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+    "A list of products in repository. The number of entries is given by the value of productsNumber."
+    ::= { repository 2 }
+
+productEntry OBJECT-TYPE
+    SYNTAX ProductEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+    "An entry containing information applicable to a
+    particular product."
+    INDEX { productIndex }
+    ::= { productTable 1 }
+
+ProductEntry ::=
+    SEQUENCE {
+ 	productIndex	 Integer32,
+ 	productName	 OCTET STRING,
+ 	productDescription	 OCTET STRING,
+ 	productLocation	 OCTET STRING,
+ 	productFilesNumber	 Counter64,
+ 	productSize	 Counter64,
+ 	productLzmaTwins TruthValue,
+ 	productNoPlatform TruthValue,
+ 	productMeta TruthValue,
+ 	productDeleted TruthValue,
+ 	productSynchronizable TruthValue,
+ 	productCurrentRevision	 OCTET STRING,
+ 	productActualRevision	 OCTET STRING,
+ 	productFrozenRevision	 OCTET STRING
+    }
+
+productIndex OBJECT-TYPE
+    SYNTAX Integer32 (1..2147483647)
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Product index"
+    ::= { productEntry 1 }
+
+productName OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Product name"
+                 ::= { productEntry 2 }
+
+productDescription OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Product description"
+                 ::= { productEntry 3 }
+
+productLocation OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Product disk location"
+                 ::= { productEntry 4 }
+
+productFilesNumber OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total files in product"
+                 ::= { productEntry 5 }
+
+productSize OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Total product size in bytes"
+                 ::= { productEntry 6 }
+
+productLzmaTwins OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Product uses LZMA twin cache"
+                 ::= { productEntry 7 }
+
+productNoPlatform OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Product not uses platform division"
+                 ::= { productEntry 8 }
+
+productMeta OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Product contains Dr.Web Server security data"
+                 ::= { productEntry 9 }
+
+productDeleted OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Product was deleted from disk"
+                 ::= { productEntry 10 }
+
+productSynchronizable OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Product synchronization with GUS is enabled"
+                 ::= { productEntry 11 }
+
+productCurrentRevision OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Product current revision"
+                 ::= { productEntry 12 }
+
+productActualRevision OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Product actual revision"
+                 ::= { productEntry 13 }
+
+productFrozenRevision OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "Product frozen revision"
+                 ::= { productEntry 14 }
+
+drwebEsuiteStatisticsGroup OBJECT-GROUP
+	OBJECTS {
+		upTime,
+		startTime,
+		cpuUsage,
+		srvFlavour,
+		isESuite,
+		isESuiteSE,
+		isESuiteKatana,
+		isAVDesk,
+		nowTime,
+		cpuNumber,
+		machineName,
+		nodeName,
+		supportIPv4,
+		supportIPv6,
+		loadAverage,
+		httpUpdate,
+		httpWebStatistics,
+		totalMessages,
+		sentMessages,
+		failedMessages,
+		totalSize,
+		hint,
+		missed,
+		items,
+		invalid,
+		error,
+		cacheSize,
+		memorySize,
+		requestedBytes,
+		savedBytes,
+		maxCacheSize,
+		maxMemorySize,
+		added,
+		replaced,
+		removed,
+		agentFiles,
+		agentBytes,
+		neighborFiles,
+		neighborBytes,
+		installFiles,
+		installBytes,
+		clientsOnline,
+		clientsTotal,
+		clientsMaximum,
+		nowLinks,
+		nowAgents,
+		nowNewbies,
+		nowInstallers,
+		nowProxies,
+		clusterBytesIn,
+		clusterBytesOut,
+		clusterMessagesIn,
+		clusterMessagesOut,
+		bytesIn,
+		bytesOut,
+		bytesInUn,
+		bytesOutUn,
+		packetsIn,
+		packetsOut,
+		packetsInUn,
+		packetsOutUn,
+		maxPacketIn,
+		maxPacketOut,
+		maxPacketInUn,
+		maxPacketOutUn,
+		minPacketIn,
+		minPacketOut,
+		minPacketInUn,
+		minPacketOutUn,
+		avePacketIn,
+		avePacketOut,
+		avePacketInUn,
+		avePacketOutUn,
+		mcBytesIn,
+		mcBytesOut,
+		mcPacketsIn,
+		mcPacketsOut,
+		accepted,
+		closed,
+		listen,
+		discovery,
+		clNumber,
+		clId,
+		clAddress,
+		clType,
+		clName,
+		clRealName,
+		clDescr,
+		clSID,
+		clMAC,
+		clLDAPDN,
+		clConnected,
+		clExpiration,
+		clBlockBegin,
+		clBlockEnd,
+		clBytesIn,
+		clBytesOut,
+		clUnBytesIn,
+		clUnBytesOut,
+		clProtoVersion,
+		clPlatform,
+		clPlatformNumber,
+		clDateError,
+		clKey,
+		productsNumber,
+		productName,
+		productDescription,
+		productLocation,
+		productFilesNumber,
+		productSize,
+		productLzmaTwins,
+		productNoPlatform,
+		productMeta,
+		productDeleted,
+		productSynchronizable,
+		productCurrentRevision,
+		productActualRevision,
+		productFrozenRevision
+	}
+	STATUS current
+	DESCRIPTION "A collection of objects providing information about Doctor Web Enterprise Suite Statistics."
+	::= { compliance 2 }  
+
+END

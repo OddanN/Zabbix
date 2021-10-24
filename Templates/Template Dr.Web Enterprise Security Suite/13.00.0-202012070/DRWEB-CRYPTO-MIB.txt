@@ -1,0 +1,24 @@
+DRWEB-CRYPTO-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+	drweb
+		FROM DRWEB-MIB
+	MODULE-IDENTITY FROM SNMPv2-SMI;
+
+cryptography MODULE-IDENTITY
+	LAST-UPDATED "201610211000Z"
+	ORGANIZATION "Doctor Web, Ltd."
+	CONTACT-INFO "email: mibeditor@drweb.com"
+        DESCRIPTION  "Doctor Web Cryptography MIB"
+        REVISION     "201610211000Z"
+        DESCRIPTION  "Doctor Web Cryptography MIB (2016-10-21)"
+        ::= { drweb 3 }
+
+certExtensions          OBJECT IDENTIFIER ::= { cryptography   1 } -- Certificate extensions
+certSignExtension       OBJECT IDENTIFIER ::= { certExtensions 1 } -- Certificate sign extensions
+certPriKeyUUIDExtension OBJECT IDENTIFIER ::= { certExtensions 2 } -- Certificate private key UUID extensions
+paramSets               OBJECT IDENTIFIER ::= { cryptography   2 } -- OpenSSL paramsets
+gost2814789PS           OBJECT IDENTIFIER ::= { paramSets      1 } -- OpenSSL paramsets: GOST 28147-89 S-box
+gostR34102001PS         OBJECT IDENTIFIER ::= { paramSets      2 } -- OpenSSL paramsets: GOST R 34.10-2001 EC
+        
+END

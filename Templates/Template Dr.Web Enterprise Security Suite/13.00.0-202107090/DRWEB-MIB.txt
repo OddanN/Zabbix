@@ -1,0 +1,21 @@
+DRWEB-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+        enterprises, MODULE-IDENTITY FROM SNMPv2-SMI;
+
+drweb   MODULE-IDENTITY
+          LAST-UPDATED "201610211000Z"
+          ORGANIZATION "Doctor Web, Ltd."
+          CONTACT-INFO "email: mibeditor@drweb.com"
+          DESCRIPTION  "Base MIB for all Doctor Web products"
+          REVISION     "201610211000Z"
+          DESCRIPTION  "Base MIB for all Doctor Web products (2016-10-21)"
+        ::= { enterprises 29690 }
+
+-- enterpriseSuite OBJECT IDENTIFIER ::= { drweb 1 }
+-- drwebSnmpd      OBJECT IDENTIFIER ::= { drweb 2 }
+-- cryptography    OBJECT IDENTIFIER ::= { drweb 3 }
+
+mibs    OBJECT IDENTIFIER ::= { drweb 4 }
+
+END

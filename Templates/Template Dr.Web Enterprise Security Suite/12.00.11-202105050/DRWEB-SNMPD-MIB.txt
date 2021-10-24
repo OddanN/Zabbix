@@ -1,0 +1,3134 @@
+DRWEB-SNMPD-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    drweb
+        FROM DRWEB-MIB
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE,
+    Counter32, Counter64, Integer32
+        FROM SNMPv2-SMI
+    DisplayString
+        FROM SNMPv2-TC;
+
+drwebSnmpd MODULE-IDENTITY
+    LAST-UPDATED "201810190000Z"
+    ORGANIZATION "Doctor Web, Ltd."
+    CONTACT-INFO "email: mibeditor@drweb.com"
+    DESCRIPTION "Doctor Web Snmpd MIB"
+::= { drweb 2 }
+
+alert OBJECT IDENTIFIER ::= { drwebSnmpd 1 } -- SNMPv2 notificaions
+stat  OBJECT IDENTIFIER ::= { drwebSnmpd 2 }
+info  OBJECT IDENTIFIER ::= { drwebSnmpd 3 }
+
+DrWebErrorCode ::= INTEGER{
+    ok(0),
+    monitorIpcError(1),
+    alreadyInProgress(2),
+    inPendingState(3),
+    interruptedByUser(4),
+    canceled(5),
+    linkDisconnected(6),
+    badMessageSize(7),
+    badMessageFormat(8),
+    notReady(9),
+    notInstalled(10),
+    unexpectedMessage(11),
+    protocolViolation(12),
+    unknownState(13),
+    notAbsolutePath(20),
+    noMemory(21),
+    ioError(22),
+    noSuchEntry(23),
+    permissionDenied(24),
+    notADirectory(25),
+    dataCorrupted(26),
+    fileExists(27),
+    readOnlyFs(28),
+    networkError(29),
+    notADrive(30),
+    unexpectedEof(31),
+    fileWasChanged(32),
+    notARegularFile(33),
+    nameAlreadyInUse(34),
+    hostOffline(35),
+    limitReached(36),
+    crossDeviceLink(37),
+    unpackingError(38),
+    baseCorrupted(40),
+    oldBaseVersion(41),
+    emptyBase(42),
+    canNotBeCured(43),
+    invalidBaseSet(44),
+    scanLimitReached(45),
+    authFailed(47),
+    notAuthorized(48),
+    invalidToken(49),
+    dbCommonError(50),
+    dbOpenError(51),
+    dbConnClosed(52),
+    invalidArgument(60),
+    invalidOperation(61),
+    rootOnly(62),
+    standaloneModeOnly(63),
+    nonSupportedOs(64),
+    notImplemented(65),
+    unknownOption(66),
+    unknownSection(67),
+    invalidOptionValue(68),
+    invalidState(69),
+    notListOption(70),
+    invalidTag(71),
+    recordNotFound(80),
+    recordBusy(81),
+    quarantinedFile(82),
+    noZoneInCloud(83),
+    backupFailed(89),
+    badDrlFile(90),
+    badLstFile(91),
+    badLzmaFile(92),
+    proxyAuthError(93),
+    noUpdateServers(94),
+    badKeyFormat(95),
+    expiredKey(96),
+    networkTimedout(97),
+    badChecksum(98),
+    badTrialKey(99),
+    blockedLicense(100),
+    badLicense(101),
+    badConfig(102),
+    badExecutable(104),
+    noCoreEngine(105),
+    noVirusBases(106),
+    appTerminated(107),
+    appCrashed(108),
+    incompatible(109),
+    badVaderetroLib(110),
+    noLinuxNss(111),
+    noDwsBases(112),
+    noKernelModule(113),
+    noMeshd(114),
+    noLookupd(115),
+    noVpnd(116),
+    noGated(117),
+    noMaild(118),
+    noScanEngine(119),
+    noFileCheck(120),
+    noEsagent(121),
+    noFirewall(122),
+    noNetCheck(123),
+    noCloudd(124),
+    unexpectedError(125)
+}
+
+DrWebThreatCategory ::= INTEGER{
+    knownVirus(1),
+    suspicious(2),
+    adware(3),
+    dialer(4),
+    joke(5),
+    riskware(6),
+    hacktool(7)
+}
+
+DrWebUrlCategory ::= INTEGER{
+    infectionSource(1),
+    notRecommended(2),
+    adultContent(3),
+    violence(4),
+    weapons(5),
+    gambling(6),
+    drugs(7),
+    obsceneLanguage(8),
+    chats(9),
+    terrorism(10),
+    freeEmail(11),
+    socialNetworks(12),
+    ownerNotice(13),
+    onlineGames(14),
+    anonymizers(15),
+    cryptocurrencyMiningPools(16),
+    jobs(17),
+    blackList(20)
+}
+
+DrWebEmailAction  ::= INTEGER{
+    repacked(1),
+    rejected(2),
+    discarded(3),
+    cured(4),
+    quarantined(5),
+    deleted(6)
+}
+
+DrWebApplication ::= INTEGER{
+    configd(1),
+    scanEngine(2),
+    fileCheck(3),
+    update(4),
+    esagent(5),
+    netCheck(6),
+    httpd(7),
+    snmpd(8),
+    clamd(20),
+    icapd(21),
+    smbspider(40),
+    gated(41),
+    maild(42),
+    lookupd(43),
+    antispam(44),
+    cloudd(50),
+    vpnd(51),
+    meshd(52),
+    lotus(60),
+    macgui(100),
+    macspider(102),
+    macfirewall(103),
+    linuxgui(200),
+    linuxspider(201),
+    linuxnss(202),
+    linuxfirewall(203),
+    ctl(300),
+    esscan(400)
+}
+
+DrWebConnectionDivert ::= INTEGER{
+    input(1), output(2)
+}
+
+DrWebAppNetworkProtocol ::= INTEGER{
+    smtp(1), pop3(2), imap(3), http(4)
+}
+
+threatAlert NOTIFICATION-TYPE
+        OBJECTS { threatAlertFile,
+                  threatAlertType,
+                  threatAlertName,
+                  threatAlertOrigin,
+                  threatAlertRemoteIp,
+                  threatAlertRemoteUser,
+                  threatAlertRemoteDomain }
+        STATUS current
+        DESCRIPTION "Alert on threat detection"
+        ::= { alert 1 }
+
+threatAlertFile OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of the infected file"
+        ::= { threatAlert 1 }
+
+threatAlertType OBJECT-TYPE
+        SYNTAX DrWebThreatCategory
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Type of the threat"
+        ::= { threatAlert 2 }
+
+threatAlertName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of the threat"
+        ::= { threatAlert 3 }
+
+threatAlertOrigin OBJECT-TYPE
+        SYNTAX DrWebApplication
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Application that detected the threat"
+        ::= { threatAlert 4 }
+
+threatAlertRemoteIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "IP address of remote host from which the file was accessed"
+        ::= { threatAlert 5 }
+
+threatAlertRemoteUser OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of remote user who accessed the file"
+        ::= { threatAlert 6 }
+
+threatAlertRemoteDomain OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Domain name of remote host from which the file was accessed"
+        ::= { threatAlert 7 }
+
+threatActionErrorAlert NOTIFICATION-TYPE
+        OBJECTS { threatActionErrorAlertFile,
+                  threatActionErrorAlertType,
+                  threatActionErrorAlertName,
+                  threatActionErrorAlertOrigin,
+                  threatActionErrorAlertError,
+                  threatActionErrorAlertErrorCode,
+                  threatActionErrorAlertErrorAction,
+                  threatActionErrorAlertRemoteIp,
+                  threatActionErrorAlertRemoteUser,
+                  threatActionErrorAlertRemoteDomain }
+        STATUS current
+        DESCRIPTION "Alert on threat neutralization"
+        ::= { alert 2 }
+
+threatActionErrorAlertFile OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of the infected file"
+        ::= { threatActionErrorAlert 1 }
+
+threatActionErrorAlertType OBJECT-TYPE
+        SYNTAX DrWebThreatCategory
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Type of the threat"
+        ::= { threatActionErrorAlert 2 }
+
+threatActionErrorAlertName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of the threat"
+        ::= { threatActionErrorAlert 3 }
+
+threatActionErrorAlertOrigin OBJECT-TYPE
+        SYNTAX DrWebApplication
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of the application that detected the threat"
+        ::= { threatActionErrorAlert 4 }
+
+threatActionErrorAlertError OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Description of the error"
+        ::= { threatActionErrorAlert 5 }
+
+threatActionErrorAlertErrorCode OBJECT-TYPE
+        SYNTAX DrWebErrorCode
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Error code"
+        ::= { threatActionErrorAlert 6 }
+
+threatActionErrorAlertErrorAction OBJECT-TYPE
+        SYNTAX INTEGER{ cure(1), quarantine(2), delete(3), report(4), ignore(5)}
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Failed file action"
+        ::= { threatActionErrorAlert 7 }
+
+threatActionErrorAlertRemoteIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "IP address of remote host from which the file was accessed"
+        ::= { threatActionErrorAlert 8 }
+
+threatActionErrorAlertRemoteUser OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of remote user who accessed the file"
+        ::= { threatActionErrorAlert 9 }
+
+threatActionErrorAlertRemoteDomain OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Domain name of remote host from which the file was accessed"
+        ::= { threatActionErrorAlert 10 }
+
+componentFailureAlert  NOTIFICATION-TYPE
+        OBJECTS { componentFailureAlertName, 
+                  componentFailureAlertExitCodeDescription,
+                  componentFailureAlertExitCode}
+        STATUS current
+        DESCRIPTION "Alert on component failure"
+        ::= { alert 3 }
+
+componentFailureAlertName OBJECT-TYPE
+        SYNTAX DrWebApplication
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of the component"
+        ::= { componentFailureAlert 1 }
+
+componentFailureAlertExitCodeDescription OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Description of the exit code of the component"
+        ::= { componentFailureAlert 2 }
+
+componentFailureAlertExitCode OBJECT-TYPE
+        SYNTAX DrWebErrorCode
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Exit code of the component"
+        ::= { componentFailureAlert 3 }
+
+infectedUrlAlert NOTIFICATION-TYPE
+        OBJECTS { infectedUrlAlertUrl,
+                  infectedUrlAlertDirection,
+                  infectedUrlAlertType,
+                  infectedUrlAlertName,
+                  infectedUrlAlertOrigin,
+                  infectedUrlAlertSrcIp,
+                  infectedUrlAlertSrcPort,
+                  infectedUrlAlertDstIp,
+                  infectedUrlAlertDstPort,
+                  infectedUrlAlertSniHost,
+                  infectedUrlAlertExePath,
+                  infectedUrlAlertUserName  }
+        STATUS current
+        DESCRIPTION "Alert on malicious URL blocking"
+        ::= { alert 4 }
+
+infectedUrlAlertUrl OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "The malicious URL that blocked"
+        ::= { infectedUrlAlert 1 }
+
+infectedUrlAlertDirection OBJECT-TYPE
+        SYNTAX INTEGER{ request(1), response(2) }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Direction of the HTTP message"
+        ::= { infectedUrlAlert 2 }
+
+infectedUrlAlertType OBJECT-TYPE
+        SYNTAX DrWebThreatCategory
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Type of the threat"
+        ::= { infectedUrlAlert 3 }
+
+infectedUrlAlertName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of the threat"
+        ::= { infectedUrlAlert 4 }
+
+infectedUrlAlertOrigin OBJECT-TYPE
+        SYNTAX DrWebApplication
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of the application that blocked the URL"
+        ::= { infectedUrlAlert 5 }
+
+infectedUrlAlertSrcIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source IP address of the HTTP connection"
+        ::= { infectedUrlAlert 6 }
+
+infectedUrlAlertSrcPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source TCP port number of the HTTP connection"
+        ::= { infectedUrlAlert 7 }
+
+infectedUrlAlertDstIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination IP address of the HTTP connection"
+        ::= { infectedUrlAlert 8 }
+
+infectedUrlAlertDstPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination TCP port number of the HTTP connection"
+        ::= { infectedUrlAlert 9 }
+
+
+infectedUrlAlertSniHost OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Server name indication of the SSL session of the HTTP connection"
+        ::= { infectedUrlAlert 10 }
+
+infectedUrlAlertExePath OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "File system path of the program that use HTTP connection"
+        ::= { infectedUrlAlert 11 }
+
+infectedUrlAlertUserName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "User name of the program that use HTTP connection"
+        ::= { infectedUrlAlert 12 }
+
+infectedEmailAttachmentAlert NOTIFICATION-TYPE
+        OBJECTS { infectedEmailAttachmentAlertType,
+                  infectedEmailAttachmentAlertName,
+                  infectedEmailAttachmentAlertOrigin,
+                  infectedEmailAttachmentAlertSocket,
+                  infectedEmailAttachmentAlertMailFrom,
+                  infectedEmailAttachmentAlertRcptTo,
+                  infectedEmailAttachmentAlertMessageId,
+                  infectedEmailAttachmentAlertAction,
+                  infectedEmailAttachmentAlertDivert,
+                  infectedEmailAttachmentAlertSrcIp,
+                  infectedEmailAttachmentAlertSrcPort,
+                  infectedEmailAttachmentAlertDstIp,
+                  infectedEmailAttachmentAlertDstPort,
+                  infectedEmailAttachmentAlertSniHost,
+                  infectedEmailAttachmentAlertProtocol,
+                  infectedEmailAttachmentAlertExePath,
+                  infectedEmailAttachmentAlertUserName }
+        STATUS current
+        DESCRIPTION "Alert on infected email attachment"
+        ::= { alert 5 }
+
+infectedEmailAttachmentAlertType OBJECT-TYPE
+        SYNTAX DrWebThreatCategory
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Type of the threat"
+        ::= { infectedEmailAttachmentAlert 1 }
+
+infectedEmailAttachmentAlertName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of the threat"
+        ::= { infectedEmailAttachmentAlert 2 }
+
+infectedEmailAttachmentAlertOrigin OBJECT-TYPE
+        SYNTAX DrWebApplication
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Name of the application that detected the infected attachment"
+        ::= { infectedEmailAttachmentAlert 3 }
+
+infectedEmailAttachmentAlertSocket OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "IP address from where the email with the infected attachment was received"
+        ::= { infectedEmailAttachmentAlert 4 }
+
+infectedEmailAttachmentAlertMailFrom OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Sender of the email with the infected attachment"
+        ::= { infectedEmailAttachmentAlert 5 }
+
+infectedEmailAttachmentAlertRcptTo OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Recipients list of the email with the infected attachment"
+        ::= { infectedEmailAttachmentAlert 6 }
+
+infectedEmailAttachmentAlertMessageId OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Value of the Message-ID header of the email with the infected attachment"
+        ::= { infectedEmailAttachmentAlert 7 }
+
+infectedEmailAttachmentAlertAction OBJECT-TYPE
+        SYNTAX DrWebEmailAction
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Action that was applied to the email with the infected attachment"
+        ::= { infectedEmailAttachmentAlert 8 }
+
+infectedEmailAttachmentAlertDivert OBJECT-TYPE
+        SYNTAX DrWebConnectionDivert
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Used method of redirecting connection to the checking module"
+        ::= { infectedEmailAttachmentAlert 9 }
+
+infectedEmailAttachmentAlertSrcIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source IP address of the connection"
+        ::= { infectedEmailAttachmentAlert 10 }
+
+infectedEmailAttachmentAlertSrcPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source TCP port number of the connection"
+        ::= { infectedEmailAttachmentAlert 11 }
+
+infectedEmailAttachmentAlertDstIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination IP address of the connection"
+        ::= { infectedEmailAttachmentAlert 12 }
+
+infectedEmailAttachmentAlertDstPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination TCP port number of the connection"
+        ::= { infectedEmailAttachmentAlert 13 }
+
+infectedEmailAttachmentAlertSniHost OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Server name indication of the SSL session of the connection"
+        ::= { infectedEmailAttachmentAlert 14 }
+
+infectedEmailAttachmentAlertProtocol OBJECT-TYPE
+        SYNTAX DrWebAppNetworkProtocol
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Detected application layer network protocol"
+        ::= { infectedEmailAttachmentAlert 15 }
+
+infectedEmailAttachmentAlertExePath OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "File system path of the program that use connection"
+        ::= { infectedEmailAttachmentAlert 16 }
+
+infectedEmailAttachmentAlertUserName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "User name of the program that use connection"
+        ::= { infectedEmailAttachmentAlert 17 }
+
+categoryUrlAlert NOTIFICATION-TYPE
+        OBJECTS { categoryUrlAlertUrl,
+                  categoryUrlAlertCategory,
+                  categoryUrlAlertOrigin,
+                  categoryUrlAlertSrcIp,
+                  categoryUrlAlertSrcPort,
+                  categoryUrlAlertDstIp,
+                  categoryUrlAlertDstPort,
+                  categoryUrlAlertSniHost,
+                  categoryUrlAlertExePath,
+                  categoryUrlAlertUserName }
+        STATUS current
+        DESCRIPTION "Alert on unwanted URL blocking"
+        ::= { alert 6 }
+
+categoryUrlAlertUrl OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "The unwanted URL that blocked"
+        ::= { categoryUrlAlert 1 }
+
+categoryUrlAlertCategory OBJECT-TYPE
+        SYNTAX DrWebUrlCategory
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Category of URL"
+        ::= { categoryUrlAlert 2 }
+
+categoryUrlAlertOrigin OBJECT-TYPE
+        SYNTAX DrWebApplication
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "DrWeb component application that blocked the URL"
+        ::= { categoryUrlAlert 3 }
+
+categoryUrlAlertSrcIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source IP address of the HTTP connection"
+        ::= { categoryUrlAlert 4  }
+
+categoryUrlAlertSrcPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source TCP port number of the HTTP connection"
+        ::= { categoryUrlAlert 5  }
+
+categoryUrlAlertDstIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination IP address of the HTTP connection"
+        ::= { categoryUrlAlert 6 }
+
+categoryUrlAlertDstPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination TCP port number of the HTTP connection"
+        ::= { categoryUrlAlert 7 }
+
+categoryUrlAlertSniHost OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Server name indication of the SSL session of the HTTP connection"
+        ::= { categoryUrlAlert 8 }
+
+categoryUrlAlertExePath OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "File system path of the program that use HTTP connection"
+        ::= { categoryUrlAlert 9 }
+
+categoryUrlAlertUserName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "User name of the program that use HTTP connection"
+        ::= { categoryUrlAlert 10 }
+
+categoryUrlEmailAttachmentAlert NOTIFICATION-TYPE
+        OBJECTS { categoryUrlEmailAttachmentAlertType,
+                  categoryUrlEmailAttachmentAlertOrigin,
+                  categoryUrlEmailAttachmentAlertSocket,
+                  categoryUrlEmailAttachmentAlertMailFrom,
+                  categoryUrlEmailAttachmentAlertRcptTo,
+                  categoryUrlEmailAttachmentAlertMessageId,
+                  categoryUrlEmailAttachmentAlertAction,
+                  categoryUrlEmailAttachmentAlertDivert,
+                  categoryUrlEmailAttachmentAlertSrcIp,
+                  categoryUrlEmailAttachmentAlertSrcPort,
+                  categoryUrlEmailAttachmentAlertDstIp,
+                  categoryUrlEmailAttachmentAlertDstPort,
+                  categoryUrlEmailAttachmentAlertSniHost,
+                  categoryUrlEmailAttachmentAlertProtocol,
+                  categoryUrlEmailAttachmentAlertExePath,
+                  categoryUrlEmailAttachmentAlertUserName }
+        STATUS current
+        DESCRIPTION "Alert on infected email attachment"
+        ::= { alert 7 }
+
+categoryUrlEmailAttachmentAlertType OBJECT-TYPE
+        SYNTAX DrWebUrlCategory
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Category of URL"
+        ::= { categoryUrlEmailAttachmentAlert 1 }
+
+categoryUrlEmailAttachmentAlertOrigin OBJECT-TYPE
+        SYNTAX DrWebApplication
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "DrWeb component application that detected category of URL in the email"
+        ::= { categoryUrlEmailAttachmentAlert 2 }
+
+categoryUrlEmailAttachmentAlertSocket OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "IP address from where the email, that contains detected URL category, was received"
+        ::= { categoryUrlEmailAttachmentAlert 3 }
+
+categoryUrlEmailAttachmentAlertMailFrom OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Sender of the email, that contains detected URL category"
+        ::= { categoryUrlEmailAttachmentAlert 4 }
+
+categoryUrlEmailAttachmentAlertRcptTo OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Recipients list of the email, that contains detected URL category"
+        ::= { categoryUrlEmailAttachmentAlert 5 }
+
+categoryUrlEmailAttachmentAlertMessageId OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Value of the Message-ID header of the email, that contains detected URL category"
+        ::= { categoryUrlEmailAttachmentAlert 6 }
+
+categoryUrlEmailAttachmentAlertAction OBJECT-TYPE
+        SYNTAX DrWebEmailAction
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Action that was applied to the email, that contains detected URL category"
+        ::= { categoryUrlEmailAttachmentAlert 7 }
+
+categoryUrlEmailAttachmentAlertDivert OBJECT-TYPE
+        SYNTAX DrWebConnectionDivert
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Used method of redirecting connection to the checking module"
+        ::= { categoryUrlEmailAttachmentAlert 8 }
+
+categoryUrlEmailAttachmentAlertSrcIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source IP address of the connection"
+        ::= { categoryUrlEmailAttachmentAlert 9 }
+
+categoryUrlEmailAttachmentAlertSrcPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source TCP port number of the connection"
+        ::= { categoryUrlEmailAttachmentAlert 10 }
+
+categoryUrlEmailAttachmentAlertDstIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination IP address of the connection"
+        ::= { categoryUrlEmailAttachmentAlert 11 }
+
+categoryUrlEmailAttachmentAlertDstPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination TCP port number of the connection"
+        ::= { categoryUrlEmailAttachmentAlert 12 }
+
+categoryUrlEmailAttachmentAlertSniHost OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Server name indication of the SSL session of the connection"
+        ::= { categoryUrlEmailAttachmentAlert 13 }
+
+categoryUrlEmailAttachmentAlertProtocol OBJECT-TYPE
+        SYNTAX DrWebAppNetworkProtocol
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Detected application layer network protocol"
+        ::= { categoryUrlEmailAttachmentAlert 14 }
+
+categoryUrlEmailAttachmentAlertExePath OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "File system path of the program that use connection"
+        ::= { categoryUrlEmailAttachmentAlert 15 }
+
+categoryUrlEmailAttachmentAlertUserName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "User name of the program that use connection"
+        ::= { categoryUrlEmailAttachmentAlert 16 }
+
+spamEmailAlert NOTIFICATION-TYPE
+        OBJECTS { spamEmailAlertOrigin,
+                  spamEmailAlertSocket,
+                  spamEmailAlertMailFrom,
+                  spamEmailAlertRcptTo,
+                  spamEmailAlertMessageId,
+                  spamEmailAlertAction,
+                  spamEmailAlertDivert,
+                  spamEmailAlertSrcIp,
+                  spamEmailAlertSrcPort,
+                  spamEmailAlertDstIp,
+                  spamEmailAlertDstPort,
+                  spamEmailAlertSniHost,
+                  spamEmailAlertProtocol,
+                  spamEmailAlertExePath,
+                  spamEmailAlertUserName }
+        STATUS current
+        DESCRIPTION "Alert on infected email attachment"
+        ::= { alert 8 }
+
+spamEmailAlertOrigin OBJECT-TYPE
+        SYNTAX DrWebApplication
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "DrWeb component application that detected email recognized as a spam"
+        ::= { spamEmailAlert 1 }
+
+spamEmailAlertSocket OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "IP address from where the email, that recognized as a spam, was received"
+        ::= { spamEmailAlert 2 }
+
+spamEmailAlertMailFrom OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Sender of the email, that recognized as a spam"
+        ::= { spamEmailAlert 3 }
+
+spamEmailAlertRcptTo OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Recipients list of the email, that recognized as a spam"
+        ::= { spamEmailAlert 4 }
+
+spamEmailAlertMessageId OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Value of the Message-ID header of the email, that recognized as a spam"
+        ::= { spamEmailAlert 5 }
+
+spamEmailAlertAction OBJECT-TYPE
+        SYNTAX DrWebEmailAction
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Action that was applied to the email, that recognized as a spam"
+        ::= { spamEmailAlert 6 }
+
+spamEmailAlertDivert OBJECT-TYPE
+        SYNTAX DrWebConnectionDivert
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Used method of redirecting connection to the checking module"
+        ::= { spamEmailAlert 7 }
+
+spamEmailAlertSrcIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source IP address of the connection"
+        ::= { spamEmailAlert 8 }
+
+spamEmailAlertSrcPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source TCP port number of the connection"
+        ::= { spamEmailAlert 9 }
+
+spamEmailAlertDstIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination IP address of the connection"
+        ::= { spamEmailAlert 10 }
+
+spamEmailAlertDstPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination TCP port number of the connection"
+        ::= { spamEmailAlert 11 }
+
+spamEmailAlertSniHost OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Server name indication of the SSL session of the connection"
+        ::= { spamEmailAlert 12 }
+
+spamEmailAlertProtocol OBJECT-TYPE
+        SYNTAX DrWebAppNetworkProtocol
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Detected application layer network protocol"
+        ::= { spamEmailAlert 13 }
+
+spamEmailAlertExePath OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "File system path of the program that use connection"
+        ::= { spamEmailAlert 14 }
+
+spamEmailAlertUserName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "User name of the program that use connection"
+        ::= { spamEmailAlert 15 }
+
+blockedConnectionAlert NOTIFICATION-TYPE
+        OBJECTS { blockedConnectionAlertOrigin,
+                  blockedConnectionAlertDivert,
+                  blockedConnectionAlertSrcIp,
+                  blockedConnectionAlertSrcPort,
+                  blockedConnectionAlertDstIp,
+                  blockedConnectionAlertDstPort,
+                  blockedConnectionAlertSniHost,
+                  blockedConnectionAlertProtocol,
+                  blockedConnectionAlertExePath,
+                  blockedConnectionAlertUserName }
+        STATUS current
+        DESCRIPTION "Alert on blocking TCP/IP connection by firewall"
+        ::= { alert 9 }
+
+blockedConnectionAlertOrigin OBJECT-TYPE
+        SYNTAX DrWebApplication
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "DrWeb component application that was blocked the connection"
+        ::= { blockedConnectionAlert 1 }
+
+blockedConnectionAlertDivert OBJECT-TYPE
+        SYNTAX DrWebConnectionDivert
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Used method of redirecting connection to the checking module"
+        ::= { blockedConnectionAlert 2 }
+
+blockedConnectionAlertSrcIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source IP address of the connection"
+        ::= { blockedConnectionAlert 3 }
+
+blockedConnectionAlertSrcPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Source TCP port number of the connection"
+        ::= { blockedConnectionAlert 4 }
+
+blockedConnectionAlertDstIp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination IP address of the connection"
+        ::= { blockedConnectionAlert 5 }
+
+blockedConnectionAlertDstPort OBJECT-TYPE
+        SYNTAX INTEGER(0..65535)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Destination TCP port number of the connection"
+        ::= { blockedConnectionAlert 6 }
+
+blockedConnectionAlertSniHost OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Server name indication of the SSL session of the connection"
+        ::= { blockedConnectionAlert 7 }
+
+blockedConnectionAlertProtocol OBJECT-TYPE
+        SYNTAX DrWebAppNetworkProtocol
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Detected application layer network protocol"
+        ::= { blockedConnectionAlert 8 }
+
+blockedConnectionAlertExePath OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "File system path of the program that use connection"
+        ::= { blockedConnectionAlert 9 }
+
+blockedConnectionAlertUserName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "User name of the program that use connection"
+        ::= { blockedConnectionAlert 10 }
+
+threatCounters OBJECT IDENTIFIER ::= { stat 1 }
+
+knownVirus OBJECT-TYPE
+        SYNTAX Counter32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Number of detected known viruses"
+        ::= { threatCounters 1 }
+
+suspicious OBJECT-TYPE
+        SYNTAX Counter32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Number of detected suspicious objects"
+        ::= { threatCounters 2 }
+
+adware OBJECT-TYPE
+        SYNTAX Counter32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Number of detected adware"
+        ::= { threatCounters 3 }
+
+dialers OBJECT-TYPE
+        SYNTAX Counter32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Number of detected dialers"
+        ::= { threatCounters 4 }
+
+joke OBJECT-TYPE
+        SYNTAX Counter32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Number of detected joke programs"
+        ::= { threatCounters 5 }
+
+riskware OBJECT-TYPE
+        SYNTAX Counter32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Number of detected riskware"
+        ::= { threatCounters 6 }
+
+hacktool OBJECT-TYPE
+        SYNTAX Counter32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "Number of detected hacktools"
+        ::= { threatCounters 7 }
+
+--------------------------------------------------------------------------------
+
+scanErrors OBJECT IDENTIFIER ::= { stat 2 }
+sePathNotAbsolute OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Path is not absolute"
+::= { scanErrors 1 }
+
+seFileNotFound OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "File not found"
+::= { scanErrors 2 }
+
+seFileNotRegular OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "File is not a regular file"
+::= { scanErrors 3 }
+
+seFileNotBlockDevice OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "File is not a block device"
+::= { scanErrors 4 }
+
+seNameTooLong OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Path or file name is too long"
+::= { scanErrors 5 }
+
+seNoAccess OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Permission denied"
+::= { scanErrors 6 }
+
+seReadError OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Read error"
+::= { scanErrors 7 }
+
+seWriteError OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Write error"
+::= { scanErrors 8 }
+
+seFileTooLarge OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "File size too big"
+::= { scanErrors 9 }
+
+seFileBusy OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "File is busy"
+::= { scanErrors 10 }
+
+seUnpackingError OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Unpacking error"
+::= { scanErrors 20 }
+
+sePasswordProtected OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Password protected"
+::= { scanErrors 21 }
+
+seArchCrcError OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Archive CRC error"
+::= { scanErrors 22 }
+
+seArchInvalidHeader OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Invalid archive header"
+::= { scanErrors 23 }
+
+seArchNoMemory OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Not enough memory to process archive"
+::= { scanErrors 24 }
+
+seArchIncomplete OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Incomplete archive"
+::= { scanErrors 25 }
+
+seCanNotBeCured OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Object cannot be cured"
+::= { scanErrors 26 }
+
+sePackerLevelLimit OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exceeded maximum nesting level of packed objects"
+::= { scanErrors 30 }
+
+seArchiveLevelLimit OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exceeded maximum nesting level of archives"
+::= { scanErrors 31 }
+
+seMailLevelLimit OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exceeded maximum nesting level of mail files"
+::= { scanErrors 32 }
+
+seContainerLevelLimit OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exceeded maximum nesting level of containers"
+::= { scanErrors 33 }
+
+seCompressionLimit OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exceeded maximum compression ratio"
+::= { scanErrors 34 }
+
+seReportSizeLimit OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exceeded maximum report size"
+::= { scanErrors 35 }
+
+seScanTimeout OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Scan timeout expired"
+::= { scanErrors 40 }
+
+seEngineCrash OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Scanning Engine crash was detected"
+::= { scanErrors 41 }
+
+seEngineHangup OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Scanning Engine stopped responding"
+::= { scanErrors 42 }
+
+seEngineNotReady OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Engine not available"
+::= { scanErrors 43 }
+
+seEngineError OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Internal error of Scanning Engine"
+::= { scanErrors 44 }
+
+seNoLicense OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "No valid license found"
+::= { scanErrors 45 }
+
+seCuringLimitReached OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Curing limit reached"
+::= { scanErrors 47 }
+
+seNonSupportedDisk OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Unsupported disk"
+::= { scanErrors 50 }
+
+seUnexpectedError OBJECT-TYPE
+    SYNTAX Counter32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Unexpected error"
+::= { scanErrors 100 }
+
+--------------------------------------------------------------------------------
+
+scanLoadAverage OBJECT IDENTIFIER ::= { stat 3 }
+
+filesScannedTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF FilesScannedEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Average numbers of files scanned for the components"
+::= { scanLoadAverage 1 }
+
+filesScannedEntry OBJECT-TYPE
+    SYNTAX FilesScannedEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Record of the component"
+    INDEX { filesScannedIndex }
+::= { filesScannedTable 1 }
+
+FilesScannedEntry ::= SEQUENCE {
+     filesScannedIndex DrWebApplication,
+     filesScannedOrigin DisplayString,
+     filesScanned1min DisplayString,
+     filesScanned5min DisplayString,
+     filesScanned15min DisplayString
+}
+
+filesScannedIndex OBJECT-TYPE
+     SYNTAX DrWebApplication
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Index of the component"
+::= { filesScannedEntry 1 }
+
+filesScannedOrigin OBJECT-TYPE
+     SYNTAX DisplayString
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Name of the component"
+::= { filesScannedEntry 2 }
+
+filesScanned1min OBJECT-TYPE
+     SYNTAX DisplayString
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Average in 1 minute number of files scanned per second"
+::= { filesScannedEntry 3 }
+
+filesScanned5min OBJECT-TYPE
+     SYNTAX DisplayString
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Average in 5 minutes number of files scanned per second"
+::= { filesScannedEntry 4 }
+
+filesScanned15min OBJECT-TYPE
+     SYNTAX DisplayString
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Average in 15 minutes number of files scanned per second"
+::= { filesScannedEntry 5 }
+
+bytesScannedTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF BytesScannedEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Average numbers of bytes scanned for the components"
+::= { scanLoadAverage 2 }
+
+bytesScannedEntry OBJECT-TYPE
+    SYNTAX BytesScannedEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Record of the component"
+    INDEX { bytesScannedIndex }
+::= { bytesScannedTable 1 }
+
+BytesScannedEntry ::= SEQUENCE {
+     bytesScannedIndex DrWebApplication,
+     bytesScannedOrigin DisplayString,
+     bytesScanned1min DisplayString,
+     bytesScanned5min DisplayString,
+     bytesScanned15min DisplayString
+}
+
+bytesScannedIndex OBJECT-TYPE
+     SYNTAX DrWebApplication
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Index of the component"
+::= { bytesScannedEntry 1 }
+
+bytesScannedOrigin OBJECT-TYPE
+     SYNTAX DisplayString
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Name of the component"
+::= { bytesScannedEntry 2 }
+
+bytesScanned1min OBJECT-TYPE
+     SYNTAX DisplayString
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Average in 1 minute number of bytes scanned per second"
+::= { bytesScannedEntry 3 }
+
+bytesScanned5min OBJECT-TYPE
+     SYNTAX DisplayString
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Average in 5 minutes number of bytes scanned per second"
+::= { bytesScannedEntry 4 }
+
+bytesScanned15min OBJECT-TYPE
+     SYNTAX DisplayString
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Average in 15 minutes number of bytes scanned per second"
+::= { bytesScannedEntry 5 }
+
+cacheHitFilesTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF CacheHitFilesEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Average numbers of scanning reports taken from the cache for the components"
+::= { scanLoadAverage 3 }
+
+cacheHitFilesEntry OBJECT-TYPE
+    SYNTAX CacheHitFilesEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Record of the component"
+    INDEX { cacheHitFilesIndex }
+::= { cacheHitFilesTable 1 }
+
+CacheHitFilesEntry ::= SEQUENCE {
+     cacheHitFilesIndex DrWebApplication,
+     cacheHitFilesOrigin DisplayString,
+     cacheHitFiles1min DisplayString,
+     cacheHitFiles5min DisplayString,
+     cacheHitFiles15min DisplayString
+}
+
+cacheHitFilesIndex OBJECT-TYPE
+     SYNTAX DrWebApplication
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Index of the component"
+::= { cacheHitFilesEntry 1 }
+
+cacheHitFilesOrigin OBJECT-TYPE
+     SYNTAX DisplayString
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Name of the component"
+::= { cacheHitFilesEntry 2 }
+
+cacheHitFiles1min OBJECT-TYPE
+     SYNTAX DisplayString
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION "Average in 1 minute number of scanning reports taken per second"
+::= { cacheHitFilesEntry 3 }
+
+cacheHitFiles5min OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Average in 5 minutes number of scanning reports taken per second"
+::= { cacheHitFilesEntry 4 }
+
+cacheHitFiles15min OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Average in 15 minutes number of scanning reports taken per second"
+::= { cacheHitFilesEntry 5 }
+
+errorsTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF ErrorsEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Average numbers of scanning errors for the components"
+::= { scanLoadAverage 4 }
+
+errorsEntry OBJECT-TYPE
+    SYNTAX ErrorsEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Record of the component"
+    INDEX { errorsIndex }
+::= { errorsTable 1 }
+
+ErrorsEntry ::= SEQUENCE {
+    errorsIndex DrWebApplication,
+    errorsOrigin DisplayString,
+    errors1min DisplayString,
+    errors5min DisplayString,
+    errors15min DisplayString
+}
+
+errorsIndex OBJECT-TYPE
+    SYNTAX DrWebApplication
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Index of the component"
+::= { errorsEntry 1 }
+
+errorsOrigin OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Name of the component"
+::= { errorsEntry 2 }
+
+errors1min OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Average in 1 minute number of scanning errors per second"
+::= { errorsEntry 3 }
+
+errors5min OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Average in 5 minutes number of scanning errors per second"
+::= { errorsEntry 4 }
+
+errors15min OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Average in 15 minutes number of scanning errors per second"
+::= { errorsEntry 5 }
+
+--------------------------------------------------------------------------------
+
+net OBJECT IDENTIFIER ::= { stat 4 }
+
+markedAsSpam OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of emails marked as spam"
+::= { net 1 }
+
+blockedInfectionSource OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Infection source'"
+::= { net 101 }
+
+blockedNotRecommended OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Not recommended'"
+::= { net 102 }
+
+blockedAdultContent OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Adult content'"
+::= { net 103 }
+
+blockedViolence OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Violence'"
+::= { net 104 }
+
+blockedWeapons OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Weapons'"
+::= { net 105 }
+
+blockedGambling OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Gambling'"
+::= { net 106 }
+
+blockedDrugs OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Drugs'"
+::= { net 107 }
+
+blockedObsceneLanguage OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Obscene language'"
+::= { net 108 }
+
+blockedChats OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Chats'"
+::= { net 109 }
+
+blockedTerrorism OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Terrorism'"
+::= { net 110 }
+
+blockedFreeEmail OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Free email services'"
+::= { net 111 }
+
+blockedSocialNetworks OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Social networks'"
+::= { net 112 }
+
+blockedOwnersNotice OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Copyright owner`s notice'"
+::= { net 113 }
+
+blockedOnlineGames OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Online games'"
+::= { net 114 }
+
+blockedAnonymizers OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Anonymizers'"
+::= { net 115 }
+
+blockedCryptocurrencyMiningPools OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from category 'Cryptocurrency mining pools'"
+::= { net 116 }
+
+blockedBlackList OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of blocked URLs from user`s black list"
+::= { net 120 }
+
+--------------------------------------------------------------------------------
+
+components OBJECT IDENTIFIER ::= { info 1 }
+
+configd OBJECT IDENTIFIER ::= { components 1 }
+configdState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-configd component"
+::= { configd 1 }
+
+configdExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-configd component"
+::= { configd 2 }
+
+configdExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-configd component"
+::= { configd 3 }
+
+configdInstalledApps OBJECT-TYPE
+    SYNTAX SEQUENCE OF ConfigdAppEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "List of installed components"
+::= { configd 101 }
+
+configdAppEntry OBJECT-TYPE
+    SYNTAX ConfigdAppEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Record of the installed component"
+    INDEX { configdAppIndex }
+::= { configdInstalledApps  1 }
+
+ConfigdAppEntry ::= SEQUENCE {
+    configdAppIndex DrWebApplication,
+    configdAppName DisplayString,
+    configdAppExePath OCTET STRING,
+    configdAppInstallTime Counter64,
+    configdAppIniSection DisplayString
+}
+
+configdAppIndex OBJECT-TYPE
+    SYNTAX DrWebApplication
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Index of the installed component"
+::= { configdAppEntry 1 }
+
+configdAppName OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Name of the installed component"
+::= { configdAppEntry 2 }
+
+configdAppExePath OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Path to the executable of the installed component"
+::= { configdAppEntry 3 }
+
+configdAppInstallTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Installation time of the component"
+::= { configdAppEntry 4 }
+
+configdAppIniSection OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Name of the configuration file section where component's parameters are specified"
+::= { configdAppEntry 5 }
+
+
+--------------------------------------------------------------------------------
+scanEngine OBJECT IDENTIFIER ::= { components 2 }
+scanEngineState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-se component"
+::= { scanEngine 1 }
+
+scanEngineExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-se component"
+::= { scanEngine 2 }
+
+scanEngineExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-se component"
+::= { scanEngine 3 }
+
+scanEngineStatus OBJECT-TYPE
+    SYNTAX INTEGER { notSet(0), loadingBases(1), basesLoaded(2) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of Virus-Finding Engine"
+::= { scanEngine 101 }
+
+scanEngineVersion OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Version of Virus-Finding Engine"
+::= { scanEngine 102 }
+
+scanEngineVirusRecords OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of virus records"
+::= { scanEngine 103 }
+
+scanEngineMaxForks OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Maximum number of scanning child processes of drweb-se"
+::= { scanEngine 104 }
+
+scanEngineQueues OBJECT IDENTIFIER ::= { scanEngine 105 }
+
+scanEngineQueuesLow OBJECT IDENTIFIER ::= { scanEngineQueues 1 }
+
+scanEngineQueueLowOut OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of low priority scan tasks removed from the queue and sent to be processed"
+::= { scanEngineQueuesLow 1 }
+
+scanEngineQueueLowSize OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of low priority scan tasks pending in the queue"
+::= { scanEngineQueuesLow 2 }
+
+scanEngineQueuesMedium OBJECT IDENTIFIER ::= { scanEngineQueues 2 }
+
+scanEngineQueueMediumOut OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of medium priority scan tasks removed from the queue and sent to be processed"
+::= { scanEngineQueuesMedium 1 }
+
+scanEngineQueueMediumSize OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of medium priority scan tasks pending in the queue"
+::= { scanEngineQueuesMedium 2 }
+
+scanEngineQueuesHigh OBJECT IDENTIFIER ::= { scanEngineQueues 3 }
+
+scanEngineQueueHighOut OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of high priority scan tasks removed from the queue and sent to be processed"
+::= { scanEngineQueuesHigh 1 }
+
+scanEngineQueueHighSize OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of high priority scan tasks pending in the queue"
+::= { scanEngineQueuesHigh 2 }
+
+scanEngineVirusBasesTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF ScanEngineVirusBasesEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "List of virus databases"
+::= { scanEngine 106 }
+
+scanEngineVirusBasesEntry OBJECT-TYPE
+    SYNTAX ScanEngineVirusBasesEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Record of the virus database"
+    INDEX { scanEngineVirusBaseIndex }
+::= { scanEngineVirusBasesTable 1 }
+
+ScanEngineVirusBasesEntry ::= SEQUENCE{
+    scanEngineVirusBaseIndex Integer32,
+    scanEngineVirusBasePath OCTET STRING,
+    scanEngineVirusBaseRecords Integer32,
+    scanEngineVirusBaseVersion Integer32,
+    scanEngineVirusBaseTimestamp Counter64,
+    scanEngineVirusBaseMD5 DisplayString,
+    scanEngineVirusBaseLoadResult DisplayString
+}
+
+scanEngineVirusBaseIndex OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Index of the virus database"
+::= { scanEngineVirusBasesEntry 1 }
+
+scanEngineVirusBasePath OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Path to the virus database file"
+::= { scanEngineVirusBasesEntry 2 }
+
+scanEngineVirusBaseRecords OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of records in the virus database"
+::= { scanEngineVirusBasesEntry 3 }
+
+scanEngineVirusBaseVersion OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Version of the virus database"
+::= { scanEngineVirusBasesEntry 4 }
+
+scanEngineVirusBaseTimestamp OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Timestamp of the virus database"
+::= { scanEngineVirusBasesEntry 5 }
+
+scanEngineVirusBaseMD5 OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "MD5 hash of the virus database"
+::= { scanEngineVirusBasesEntry 6 }
+
+scanEngineVirusBaseLoadResult OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Virus database load result"
+::= { scanEngineVirusBasesEntry 7 }
+
+--------------------------------------------------------------------------------
+
+fileCheck OBJECT IDENTIFIER ::= { components 3 }
+fileCheckState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-filecheck component"
+::= { fileCheck 1 }
+
+fileCheckExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-filecheck component"
+::= { fileCheck 2 }
+
+fileCheckExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-filecheck component"
+::= { fileCheck 3 }
+
+fileCheckScannedFiles OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of scanned files"
+::= { fileCheck 101 }
+
+fileCheckScannedBytes OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of scanned bytes"
+::= { fileCheck 102 }
+
+fileCheckCacheHitFiles OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of scanning reports taken from the cache"
+::= { fileCheck 103 }
+
+fileCheckScanErrors OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of scanning engine errors"
+::= { fileCheck 104 }
+
+fileCheckScanStat OBJECT-TYPE
+    SYNTAX SEQUENCE OF FileCheckClientEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "List of drweb-filecheck clients"
+::= { fileCheck 105 }
+
+fileCheckClientEntry OBJECT-TYPE
+    SYNTAX FileCheckClientEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Record of the drweb-filecheck client"
+    INDEX { fileCheckClientIndex }
+::= { fileCheckScanStat 1 }
+
+FileCheckClientEntry ::= SEQUENCE {
+    fileCheckClientIndex DrWebApplication,
+    fileCheckClientName DisplayString,
+    fileCheckClientScannedFiles Counter64,
+    fileCheckClientScannedBytes Counter64,
+    fileCheckClientCacheHitFiles Counter64,
+    fileCheckClientScanErrors Counter64
+}
+
+fileCheckClientIndex OBJECT-TYPE
+    SYNTAX DrWebApplication
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Index of the drweb-filecheck client"
+::= { fileCheckClientEntry 1 }
+
+fileCheckClientName OBJECT-TYPE
+    SYNTAX DisplayString
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Name of the drweb-filecheck client"
+::= { fileCheckClientEntry 2 }
+
+fileCheckClientScannedFiles OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of files scanned for the drweb-filecheck client"
+::= { fileCheckClientEntry 3 }
+
+fileCheckClientScannedBytes OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of bytes scanned for the drweb-filecheck client"
+::= { fileCheckClientEntry 4 }
+
+fileCheckClientCacheHitFiles OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of scanning reports taken from the cache for the drweb-filecheck client"
+::= { fileCheckClientEntry 5 }
+
+fileCheckClientScanErrors OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of scanning engine errors on scanning files for the drweb-filecheck client"
+::= { fileCheckClientEntry 6 }
+
+--------------------------------------------------------------------------------
+
+update OBJECT IDENTIFIER ::= { components 4 }
+updateState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-update component"
+::= { update 1 }
+
+updateExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-update component"
+::= { update 2 }
+
+updateExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-update component"
+::= { update 3 }
+
+updateBytesSent OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of sent bytes"
+::= { update 101 }
+
+updateBytesReceived OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of received bytes"
+::= { update 102 }
+
+--------------------------------------------------------------------------------
+
+esagent OBJECT IDENTIFIER ::= { components 5 }
+esagentState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-esagent component"
+::= { esagent 1 }
+
+esagentExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-esagent component"
+::= { esagent 2 }
+
+esagentExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-esagent component"
+::= { esagent 3 }
+
+esagentWorkStatus OBJECT-TYPE
+    SYNTAX INTEGER { standalone(1), connecting(2), pending(3), accepted(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Operating mode of the drweb-esagent component"
+::= { esagent 101 }
+
+esagentIsConnected OBJECT-TYPE
+    SYNTAX INTEGER { no(0), yes(1) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Indicates whether connection to central protection server is established"
+::= { esagent 102 }
+
+esagentServer OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Used central protection server"
+::= { esagent 103 }
+
+--------------------------------------------------------------------------------
+
+netcheck OBJECT IDENTIFIER ::= { components 6 }
+netcheckState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-netcheck component"
+::= { netcheck 1 }
+
+netcheckExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-netcheck component"
+::= { netcheck 2 }
+
+netcheckExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-netcheck component"
+::= { netcheck 3 }
+
+netcheckLocalSeForks OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of local scanning engines available for usage"
+::= { netcheck 101 }
+
+netcheckRemoteSeForks OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of remote scanning engines available for usage"
+::= { netcheck 102 }
+
+netcheckLocalFilesScanned OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of locally scanned files"
+::= { netcheck 103 }
+
+netcheckNetworkFilesScanned OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of remotely scanned files"
+::= { netcheck 104 }
+
+netcheckLocalBytesScanned OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of locally scanned bytes"
+::= { netcheck 105 }
+
+netcheckNetworkBytesScanned OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of remotely scanned bytes"
+::= { netcheck 106 }
+
+netcheckLocalBytesIn OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of bytes received from local clients"
+::= { netcheck 107 }
+
+netcheckLocalBytesOut OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of bytes sent to local clients"
+::= { netcheck 108 }
+
+netcheckNetworkBytesIn OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of bytes received from remote peers"
+::= { netcheck 109 }
+
+netcheckNetworkBytesOut OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of bytes sent to remote peers"
+::= { netcheck 110 }
+
+netcheckLocalScanErrors OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of errors reported by local scanning engine"
+::= { netcheck 111 }
+
+netcheckNetworkScanErrors OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of scanning engine errors reported by remote peers"
+::= { netcheck 112 }
+
+--------------------------------------------------------------------------------
+
+httpd OBJECT IDENTIFIER ::= { components 7 }
+httpdState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-httpd component"
+::= { httpd 1 }
+
+httpdExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-httpd component"
+::= { httpd 2 }
+
+httpdExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-httpd component"
+::= { httpd 3 }
+
+--------------------------------------------------------------------------------
+
+snmpd OBJECT IDENTIFIER ::= { components 8 }
+snmpdState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-snmpd component"
+::= { snmpd 1 }
+
+snmpdExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-snmpd component"
+::= { snmpd 2 }
+
+snmpdExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-snmpd component"
+::= { snmpd 3 }
+
+--------------------------------------------------------------------------------
+
+clamd OBJECT IDENTIFIER ::= { components 20 }
+clamdState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-clamd component"
+::= { clamd 1 }
+
+clamdExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-clamd component"
+::= { clamd 2 }
+
+clamdExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-clamd component"
+::= { clamd 3 }
+
+--------------------------------------------------------------------------------
+
+icapd OBJECT IDENTIFIER ::= { components 21 }
+icapdState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-icapd component"
+::= { icapd 1 }
+
+icapdExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-icapd component"
+::= { icapd 2 }
+
+icapdExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-icapd component"
+::= { icapd 3 }
+
+icapdConnectionsIn OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of accepted connections"
+::= { icapd 101 }
+
+icapdConnectionsCount OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of currently opened connections"
+::= { icapd 102 }
+
+icapdOptions OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of OPTIONS requests"
+::= { icapd 103 }
+
+icapdReqmod OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of REQMOD requests"
+::= { icapd 104 }
+
+icapdRespmod OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of RESPMOD requests"
+::= { icapd 105 }
+
+icapdBad OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of bad requests"
+::= { icapd 106 }
+
+--------------------------------------------------------------------------------
+
+smbspider OBJECT IDENTIFIER ::= { components 40 }
+smbspiderState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-smbspider-daemon component"
+::= { smbspider 1 }
+
+smbspiderExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-smbspider-daemon component"
+::= { smbspider 2 }
+
+smbspiderExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-smbspider-daemon component"
+::= { smbspider 3 }
+
+smbspiderConnectionsIn OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Total number of opened connections"
+::= { smbspider 101 }
+
+smbspiderConnectionsCount OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of currently opened connections"
+::= { smbspider 102 }
+
+smbspiderShareTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF SmbSpiderShareEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Statistics on protected Samba shared resources"
+::= { smbspider 103 }
+
+smbspiderShareEntry OBJECT-TYPE
+    SYNTAX SmbSpiderShareEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION "Record of the protected Samba shared resource"
+    INDEX { smbspiderShareIndex }
+::= { smbspiderShareTable 1 }
+
+SmbSpiderShareEntry ::= SEQUENCE {
+    smbspiderShareIndex Integer32,
+    smbspiderSharePath OCTET STRING,
+    smbspiderShareConnectionsIn Counter64,
+    smbspiderShareConnectionsCount Counter64
+}
+
+smbspiderShareIndex OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Index of the protected Samba shared resource"
+::= { smbspiderShareEntry 1 }
+
+smbspiderSharePath OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Path to the protected Samba shared resource"
+::= { smbspiderShareEntry 2 }
+
+smbspiderShareConnectionsIn OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Total number of opened connections"
+::= { smbspiderShareEntry 3 }
+
+smbspiderShareConnectionsCount OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of currently opened connections"
+::= { smbspiderShareEntry 4 }
+
+--------------------------------------------------------------------------------
+
+gated OBJECT IDENTIFIER ::= { components 41 }
+gatedState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-gated component"
+::= { gated 1 }
+
+gatedExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-gated component"
+::= { gated 2 }
+
+gatedExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-gated component"
+::= { gated 3 }
+
+gatedInterceptedIn OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of intercepted connections"
+::= { gated 101 }
+
+gatedInterceptedCount OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of connections that under monitoring now"
+::= { gated 102 }
+
+--------------------------------------------------------------------------------
+
+maild OBJECT IDENTIFIER ::= { components 42 }
+maildState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-maild component"
+::= { maild 1 }
+
+maildExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-maild component"
+::= { maild 2 }
+
+maildExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-maild component"
+::= { maild 3 }
+
+maildStat OBJECT IDENTIFIER ::= { maild 4 }
+
+maildStatNative OBJECT IDENTIFIER ::= { maildStat 1 }
+
+maildStatNativePassed OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of clean emails on native interface of drweb-maild component"
+::= { maildStatNative 1 }
+
+maildStatNativeRepacked OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of repacked emails on native interface of drweb-maild component"
+::= { maildStatNative 2 }
+
+maildStatNativeRejected OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of rejected emails on native interface of drweb-maild component"
+::= { maildStatNative 3 }
+
+maildStatNativeFailed OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of failed attempts to process emails on the native interface of drweb-maild component"
+::= { maildStatNative 4 }
+
+maildStatNativeQueueSize OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of emails in the processing queue at native interface"
+::= { maildStatNative 5 }
+
+maildStatMilter OBJECT IDENTIFIER ::= { maildStat 2 }
+
+maildStatMilterPassed OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of clean emails on the Milter interface of drweb-maild component"
+::= { maildStatMilter 1 }
+
+maildStatMilterRepacked OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of repacked emails on the Milter interface of drweb-maild component"
+::= { maildStatMilter 2 }
+
+maildStatMilterRejected OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of rejected emails on the Milter interface of drweb-maild component"
+::= { maildStatMilter 3 }
+
+maildStatMilterFailed OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of failed attempts to process emails on the Milter interface of drweb-maild component"
+::= { maildStatMilter 4 }
+
+maildStatMilterQueueSize OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of emails in the processing queue on Milter interface of drweb-maild component"
+::= { maildStatMilter 5 }
+
+maildStatSpamc OBJECT IDENTIFIER ::= { maildStat 3 }
+
+maildStatSpamcPassed OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of clean emails on the Spamd interface of drweb-maild component"
+::= { maildStatSpamc 1 }
+
+maildStatSpamcRepacked OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of repacked emails on the Spamd interface of drweb-maild component"
+::= { maildStatSpamc 2 }
+
+maildStatSpamcRejected OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of rejected emails on the Spamd interface of drweb-maild component"
+::= { maildStatSpamc 3 }
+
+maildStatSpamcFailed OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of failed attempts to process emails on the Spamd interface of drweb-maild component"
+::= { maildStatSpamc 4 }
+
+maildStatSpamcQueueSize OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of emails in the processing queue on the Spamd interface of drweb-maild component"
+::= { maildStatSpamc 5 }
+
+maildStatRspamc OBJECT IDENTIFIER ::= { maildStat 4 }
+
+maildStatRspamcPassed OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of clean emails on the Rspamd interface of drweb-maild component"
+::= { maildStatRspamc 1 }
+
+maildStatRspamcRepacked OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of repacked emails on the Rspamd interface of drweb-maild component"
+::= { maildStatRspamc 2 }
+
+maildStatRspamcRejected OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of rejected emails on the Rspamd interface of drweb-maild component"
+::= { maildStatRspamc 3 }
+
+maildStatRspamcFailed OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of failed attempts to process emails on the Rspamd interface of drweb-maild component"
+::= { maildStatRspamc 4 }
+
+maildStatRspamcQueueSize OBJECT-TYPE
+    SYNTAX Integer32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of emails in the processing queue on the Rspamd interface of drweb-maild component"
+::= { maildStatRspamc 5 }
+
+--------------------------------------------------------------------------------
+
+lookupd OBJECT IDENTIFIER ::= { components 43 }
+lookupdState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-lookupd component"
+::= { lookupd 1 }
+
+lookupdExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-lookupd component"
+::= { lookupd 2 }
+
+lookupdExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-lookupd component"
+::= { lookupd 3 }
+
+--------------------------------------------------------------------------------
+
+antispam OBJECT IDENTIFIER ::= { components 44 }
+antispamState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-antispam component"
+::= { antispam 1 }
+
+antispamExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-antispam component"
+::= { antispam 2 }
+
+antispamExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-antispam component"
+::= { antispam 3 }
+
+--------------------------------------------------------------------------------
+
+cloudd OBJECT IDENTIFIER ::= { components 50 }
+clouddState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-cloudd component"
+::= { cloudd 1 }
+
+clouddExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-cloudd component"
+::= { cloudd 2 }
+
+clouddExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-cloudd component"
+::= { cloudd 3 }
+
+--------------------------------------------------------------------------------
+
+vpnd OBJECT IDENTIFIER ::= { components 51 }
+vpndState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-vpnd component"
+::= { vpnd 1 }
+
+vpndExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-vpnd component"
+::= { vpnd 2 }
+
+vpndExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-vpnd component"
+::= { vpnd 3 }
+
+vpndWorkStatus OBJECT-TYPE
+    SYNTAX INTEGER { off(0), server(1), client(2) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Operating mode of the drweb-vpnd component"
+::= { vpnd 101 }
+
+vpndConnectionState OBJECT-TYPE
+    SYNTAX INTEGER {
+        notSet(0),
+        connecting(1),
+        connected(2),
+        error(3),
+        traversingNat(4),
+        establishingIpsecTunnel(5)
+    }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of connection created by the drweb-vpnd component"
+::= { vpnd 102 }
+
+vpndNetworkName OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Name of network created by the drweb-vpnd component"
+::= { vpnd 103 }
+
+--------------------------------------------------------------------------------
+
+meshd OBJECT IDENTIFIER ::= { components 52 }
+meshdState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-meshd component"
+::= { meshd 1 }
+
+meshdExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-meshd component"
+::= { meshd 2 }
+
+meshdExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-meshd component"
+::= { meshd 3 }
+
+--------------------------------------------------------------------------------
+
+lotus OBJECT IDENTIFIER ::= { components 60 }
+lotusState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of Dr.Web for IBM Lotus Domino"
+::= { lotus 1 }
+
+lotusExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of Dr.Web for IBM Lotus Domino"
+::= { lotus 2 }
+
+lotusExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of Dr.Web for IBM Lotus Domino"
+::= { lotus 3 }
+
+--------------------------------------------------------------------------------
+
+macgui OBJECT IDENTIFIER ::= { components 100 }
+macguiState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-gui component (for macOS)"
+::= { macgui 1 }
+
+macguiExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-gui component (for macOS)"
+::= { macgui 2 }
+
+macguiExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-gui component (for macOS)"
+::= { macgui 3 }
+
+--------------------------------------------------------------------------------
+
+macspider OBJECT IDENTIFIER ::= { components 102 }
+macspiderState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-spider component (for macOS)"
+::= { macspider 1 }
+
+macspiderExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-spider component (for macOS)"
+::= { macspider 2 }
+
+macspiderExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-spider component (for macOS)"
+::= { macspider 3 }
+
+macspiderWorkStatus OBJECT-TYPE
+    SYNTAX INTEGER { notSet(0), loading(1), running(2) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Operating mode of the drweb-spider component (for macOS)"
+::= { macspider 101 }
+
+--------------------------------------------------------------------------------
+
+macfirewall OBJECT IDENTIFIER ::= { components 103 }
+macfirewallState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-firewall component (for macOS)"
+::= { macfirewall 1 }
+
+macfirewallExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-firewall component (for macOS)"
+::= { macfirewall 2 }
+
+macfirewallExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-firewall component (for macOS)"
+::= { macfirewall 3 }
+
+--------------------------------------------------------------------------------
+
+linuxgui OBJECT IDENTIFIER ::= { components 200 }
+linuxguiState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-gui component (for Linux)"
+::= { linuxgui 1 }
+
+linuxguiExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-gui component (for Linux)"
+::= { linuxgui 2 }
+
+linuxguiExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-gui component (for Linux)"
+::= { linuxgui 3 }
+
+--------------------------------------------------------------------------------
+
+linuxspider OBJECT IDENTIFIER ::= { components 201 }
+linuxspiderState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-spider component (for Linux)"
+::= { linuxspider 1 }
+
+linuxspiderExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-spider component (for Linux)"
+::= { linuxspider 2 }
+
+linuxspiderExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-spider component (for Linux)"
+::= { linuxspider 3 }
+
+linuxspiderWorkStatus OBJECT-TYPE
+    SYNTAX INTEGER { notSet(0), loading(1), fanotify(2), lkm(3) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Operating mode of the drweb-spider component (for Linux)"
+::= { linuxspider 101 }
+--------------------------------------------------------------------------------
+
+linuxnss OBJECT IDENTIFIER ::= { components 202 }
+linuxnssState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-nss component"
+::= { linuxnss 1 }
+
+linuxnssExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-nss component"
+::= { linuxnss 2 }
+
+linuxnssExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-nss component"
+::= { linuxnss 3 }
+
+linuxnssScannedFiles OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of scanned files"
+::= { linuxnss 101 }
+
+linuxnssScannedBytes OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of scanned bytes"
+::= { linuxnss 102 }
+
+linuxnssScanErrors OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Number of scanning engine errors"
+::= { linuxnss 103 }
+
+--------------------------------------------------------------------------------
+
+linuxfirewall OBJECT IDENTIFIER ::= { components 203 }
+linuxfirewallState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-firewall component (for Linux)"
+::= { linuxfirewall 1 }
+
+linuxfirewallExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-firewall component (for Linux)"
+::= { linuxfirewall 2 }
+
+linuxfirewallExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-firewall component (for Linux)"
+::= { linuxfirewall 3 }
+
+--------------------------------------------------------------------------------
+
+ctl OBJECT IDENTIFIER ::= { components 300 }
+ctlState OBJECT-TYPE
+    SYNTAX INTEGER { notInstalled(0), notRunning(1), starting(2), running(3), terminating(4) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Status of the drweb-ctl component"
+::= { ctl 1 }
+
+ctlExitCode OBJECT-TYPE
+    SYNTAX DrWebErrorCode
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit code of the drweb-ctl component"
+::= { ctl 2 }
+
+ctlExitTime OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "Exit time of the drweb-ctl component"
+::= { ctl 3 }
+
+license OBJECT IDENTIFIER ::= { info 2 }
+
+licenceEsMode OBJECT-TYPE
+    SYNTAX INTEGER{ no(0), yes(1) }
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "The license is granted by the protection server"
+::= { license 1 }
+
+licenceNumber OBJECT-TYPE
+    SYNTAX Unsigned32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "License number"
+::= { license 2 }
+
+licenceOwner OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "License owner"
+::= { license 3 }
+
+licenceActivated OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "POSIX-time when the license was activated"
+::= { license 4 }
+
+licenceExpires OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION "POSIX-time when the license expires"
+::= { license 5 }
+
+END

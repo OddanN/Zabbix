@@ -1,0 +1,2331 @@
+DRWEB-ESUITE-NOTIFICATIONS-MIB DEFINITIONS ::= BEGIN
+IMPORTS
+	drweb
+		FROM DRWEB-MIB
+        DisplayString, DateAndTime, MacAddress, TruthValue
+		FROM SNMPv2-TC
+        NOTIFICATION-GROUP, OBJECT-GROUP, MODULE-COMPLIANCE
+		FROM SNMPv2-CONF
+	MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, Unsigned32, Integer32
+		FROM SNMPv2-SMI;
+
+enterpriseSuite MODULE-IDENTITY
+	LAST-UPDATED "202107090000Z"
+	ORGANIZATION "Doctor Web, Ltd."
+	CONTACT-INFO "email: mibeditor@drweb.com"
+	DESCRIPTION "Doctor Web Enterprise Suite MIB"
+        REVISION     "202107090000Z"
+        DESCRIPTION  "Doctor Web Enterprise Suite MIB (2021-07-09)"
+        ::= { drweb 1 }
+
+alert      OBJECT IDENTIFIER ::= { enterpriseSuite 0 } --  SNMPv2 notificaions
+aux        OBJECT IDENTIFIER ::= { enterpriseSuite 1 } --  aux namespace (was notificaions in 10.0)
+vars       OBJECT IDENTIFIER ::= { enterpriseSuite 2 } --  variables
+adminAttrs OBJECT IDENTIFIER ::= { enterpriseSuite 3 } --  administrator attributes
+classMSAD  OBJECT IDENTIFIER ::= { enterpriseSuite 4 } --  DrWeb Administrator MS ActiveDirectory class
+-- stat    OBJECT IDENTIFIER ::= { enterpriseSuite 5 } - - Statistics variables (defined by MODULE-IDENTITY somewhere)
+
+groups     OBJECT IDENTIFIER ::= { aux 1 } -- various MIB entities groups
+compl      OBJECT IDENTIFIER ::= { aux 2 } -- module compliancies
+
+drwebEsuiteCompliance MODULE-COMPLIANCE
+    STATUS  current
+    DESCRIPTION "The compliance statement for DrWeb. EnterpriseSuite entities."
+    MODULE
+    MANDATORY-GROUPS {
+        drwebEsuiteNotificationGroup,
+        drwebEsuiteNotificationVarsGroup
+    }
+    ::= { compl 1 }
+
+-- ----------------------------------------------------------------------------------------------
+--  administrator variables                                                                    --
+-- ----------------------------------------------------------------------------------------------
+
+admin OBJECT-TYPE
+	SYNTAX INTEGER {
+                          no(0),
+                          yes(1)
+               }
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION "Administrator flag"
+	::= { adminAttrs 1 }
+
+-- ----------------------------------------------------------------------------------------------
+--  alerts variables                                                                           --
+-- ----------------------------------------------------------------------------------------------
+
+HipsType ::= TEXTUAL-CONVENTION
+	STATUS  current
+	DESCRIPTION
+		"Enumeration of hips types"
+	SYNTAX  INTEGER {
+      undefined(0),
+      hosts(1),
+      diskLowLevel(2),
+      driverLoad(3),
+      ifeo(4),
+      userDrivers(5),
+      winlogonShell(6),
+      winlogonNotifiers(7),
+      shellModules(8),
+      exeAssociations(9),
+      srp(10),
+      bho(11),
+      autoruns(12),
+      policyAutoruns(13),
+      safeBootConfig(14),
+      sessionManager(15),
+      systemServices(16),
+      encoders(17),
+      psInject(18),
+      prnInject(19),
+      objects(20),
+      changeTime(21),
+      lnkFiles(22),
+      shellguard(23)
+    }
+
+ShellGuardType ::= TEXTUAL-CONVENTION
+	STATUS  current
+	DESCRIPTION
+		"Enumeration of shell guatd types for hips type 'shelluard(23)'"
+	SYNTAX  INTEGER {
+      antiROP(0),
+      pageGuardedModule(1),
+      loadLibraryFromUNC(2),
+      stackProtection(3),
+      restrictedFunctionCallPrevention(4),
+      safeSEHemulation(5),
+      criticalModuleAccessRestriction(6),
+      heapSprayAddressAccess(7),
+      dEPtriggeredException(8)
+    }
+
+AppCtlType ::= TEXTUAL-CONVENTION
+	STATUS  current
+	DESCRIPTION
+		"Enumeration of application control events types"
+	SYNTAX  INTEGER {
+      unknown(0),
+      runProcess(1),
+      runHostProcess(2),
+      runScriptVM(3),
+      loadModule(4),
+      loadDriver(5),
+      runMSI(6),
+      dropNewExecutable(7),
+      modifyExecutable(8)
+    }
+
+AppCtlAction ::= TEXTUAL-CONVENTION
+	STATUS  current
+	DESCRIPTION
+		"Enumeration of application control actions"
+	SYNTAX  INTEGER {
+      unknown(0),
+      alowed(1),
+      blocked(2),
+      blockedNotInWhiteList(3),
+      allowedByRule(4),
+      blockedByRule(5),
+      allowedByPolicy(6),
+      blockedByPolicy(7)
+    }
+
+
+
+mSGAddress OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Network address of administrator or station"
+	::= { vars 10 }
+
+mSGLogin OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Administrator's login"
+	::= { vars 11 }
+
+gENStationName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Station name"
+	::= { vars 20 }
+
+gENStationID OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Station identifier"
+	::= { vars 21 }
+
+gENStationAddress OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Station network address"
+	::= { vars 22 }
+
+gENLoginTime OBJECT-TYPE
+	SYNTAX DateAndTime
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Time of station logon (UTC)"
+	::= { vars 23 }
+
+gENStationPrimaryGroupName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The name of station primary group"
+	::= { vars 24 }
+
+gENStationPrimaryGroupID OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Identifier of station primary group"
+	::= { vars 25 }
+
+gENStationDescription OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Description of station"
+	::= { vars 26 }
+
+gENStationMAC OBJECT-TYPE
+	SYNTAX MacAddress
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Station MAC address"
+	::= { vars 27 }
+
+gENStationSID OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Station self id"
+	::= { vars 28 }
+
+gENStationLDAPDN OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Distinguished Name of station"
+	::= { vars 29 }
+
+mSGObjectName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The path to the scanned object"
+	::= { vars 30 }
+
+mSGObjectOwner OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The owner of scanned object"
+	::= { vars 31 }
+
+mSGID OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Identifier of a station which is registering on the server"
+	::= { vars 40 }
+
+mSGStationName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Station name"
+	::= { vars 41 }
+
+mSGStationMAC OBJECT-TYPE
+	SYNTAX MacAddress
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Station MAC address"
+	::= { vars 42 }
+
+mSGStationSID OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Station self id"
+	::= { vars 43 }
+
+mSGProduct OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The name of the product being updated"
+	::= { vars 50 }
+
+mSGServerTime OBJECT-TYPE
+	SYNTAX DateAndTime
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Server time"
+	::= { vars 51 }
+
+gENProduct OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The name of the product in the repository"
+	::= { vars 60 }
+
+gENFolder OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Path to the product files"
+	::= { vars 61 }
+
+gENCurrentRevision OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Current revision of the product"
+	::= { vars 62 }
+
+gENNextRevision OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Next revision of the product (coincides with the current revision, if update was successful)"
+	::= { vars 63 }
+
+gENFile OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Path to file"
+	::= { vars 64 }
+
+gENServerOriginatorID OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Id of the event originator server"
+	::= { vars 65 }
+
+gENServerOriginatorName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Name of the event originator server"
+	::= { vars 66 }
+
+gENServerRecvLinkID OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Id of the last link which forwarded event"
+	::= { vars 67 }
+
+gENServerRecvLinkName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Name of the last link which forwarded event"
+	::= { vars 68 }
+
+mSGError OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Message of error occurred"
+	::= { vars 1000 }
+
+mSGAdminAddress OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Network address of administrator who performed the operation"
+	::= { vars 1001 }
+
+mSGAdminName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Login of administrator who performed the operation"
+	::= { vars 1002 }
+
+mSGReason OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Message text about the reason of operation failure"
+	::= { vars 1003 }
+
+mSGType OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of client that disconnected abnormally. Could take one
+		   of the following values: Unknown (unknown type), Station (station),
+		   Server (neighbor server), Installer (network installer) and Newbie (newbie station)"
+	::= { vars 1004 }
+
+mSGAction OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Message text about the operation performed with an infected object"
+	::= { vars 1005 }
+
+mSGInfectionType OBJECT-TYPE
+	SYNTAX INTEGER {
+           causedProcessingError(0),
+           infected(1),
+           infectedByModificationOfVirus(2),
+           probablyInfected(4),
+           adware(5),
+           dialer(6),
+           joke(7),
+           riskware(8),
+           hacktool(9),
+           unknownThreatType(50),
+           infectedArchive(51),
+           virusActivity(52),
+           behaviorBlocker(53)
+         }
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Message text about the type of infection"
+	::= { vars 1006 }
+
+mSGVirus OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Infection name"
+	::= { vars 1007 }
+
+mSGExpirationDate OBJECT-TYPE
+	SYNTAX DateAndTime
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"License expiration date"
+	::= { vars 1008 }
+
+mSGExpired OBJECT-TYPE
+	SYNTAX INTEGER {
+           will(0),  -- will expire
+           has(1)    -- has expired
+         }
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of the message about license expiration date:
+		   will (license is about to expire),
+		   has (license has expired)"
+	::= { vars 1009 }
+
+mSGObjId OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Identifier of an object for which the license has expired or about to expire"
+	::= { vars 1010 }
+
+mSGObjName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The name of an object for which the license has expired or about to expire"
+	::= { vars 1011 }
+
+mSGObjType OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of an object for which the license has expired or about to expire:
+		   server, group, station"
+	::= { vars 1012 }
+
+mSGLicensed OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of licensed stations"
+	::= { vars 1013 }
+
+mSGUsed OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of used licenses"
+	::= { vars 1014 }
+
+mSGFreeInodes OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of free inodes (has no meaning for servers under Windows OS)"
+	::= { vars 1015 }
+
+mSGFreeSpace OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The amount of free disk space in megabytes"
+	::= { vars 1016 }
+
+mSGPath OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Path in the file system"
+	::= { vars 1017 }
+
+mSGRequiredInodes OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Required number of free inodes (has no meaning for servers under Windows OS)"
+	::= { vars 1018 }
+
+mSGRequiredSpace OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Required amount of free disk space in in megabytes"
+	::= { vars 1019 }
+
+mSGPercent OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The percentage of usage of licenses number, defined as the ratio of
+		   the number of used licenses to the number of licensed stations, expressed in percentage"
+	::= { vars 1020 }
+
+mSGDaysAgo OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of days since the station was connected to the server for the last time"
+	::= { vars 1021 }
+
+mSGLastSeenFrom OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The network address from which the station was connected to the server at last time"
+	::= { vars 1022 }
+
+mSGStationID OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Station identifier"
+	::= { vars 1023 }
+
+mSGStationDescription OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Description of station"
+	::= { vars 1024 }
+
+mSGAdded OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"New files which have been added to the product"
+	::= { vars 1025 }
+
+mSGAddedCount OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of new files which have been added to the product"
+	::= { vars 1026 }
+
+mSGDeleted OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Files which have been removed from the product"
+	::= { vars 1027 }
+
+mSGDeletedCount OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of files which have been removed from the product"
+	::= { vars 1028 }
+
+mSGReplaced OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Files which have been replaced in the product"
+	::= { vars 1029 }
+
+mSGReplacedCount OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of files which have been replaced in the product"
+	::= { vars 1030 }
+
+mSGExtendedError OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Detailed message about error occurred"
+	::= { vars 1032 }
+
+mSGServer OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Identifier of the server on which the station is currently declared as registered"
+	::= { vars 1033 }
+
+mSGComponent OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The name of antivirus component"
+	::= { vars 1034 }
+
+mSGCured OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of cured objects"
+	::= { vars 1035 }
+
+mSGDeletedObjs OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of deleted files"
+	::= { vars 1036 }
+
+mSGErrors OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of objects which caused a scan errors"
+	::= { vars 1037 }
+
+mSGInfected OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of infected objects detected during scan"
+	::= { vars 1038 }
+
+mSGLocked OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of blocked files"
+	::= { vars 1039 }
+
+mSGModifications OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of modificated infections found during scan"
+	::= { vars 1040 }
+
+mSGMoved OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of files moved to quarantine"
+	::= { vars 1041 }
+
+mSGRenamed OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of renamed files"
+	::= { vars 1042 }
+
+mSGRunBy OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Login of a user under name of which the antivirus component was run"
+	::= { vars 1043 }
+
+mSGScanned OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of scanned objects"
+	::= { vars 1044 }
+
+mSGSpeed OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Average scan speed"
+	::= { vars 1046 }
+
+mSGSuspicious OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of suspicious objects"
+	::= { vars 1047 }
+
+mSGVirusActivity OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Number of detected virus activities"
+	::= { vars 1048 }
+
+mSGRejected OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The reason of station rejecting"
+	::= { vars 1049 }
+
+mSGLoginErrorCode OBJECT-TYPE
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The code of authorization error"
+	::= { vars 1050 }
+
+mSGTestMessage OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Message for testing settings"
+	::= { vars 1051 }
+
+mSGAttachment OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Path to attached file generated by server"
+	::= { vars 1052 }
+
+mSGAttachmentType OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Mime type for attached file generated by server"
+	::= { vars 1053 }
+
+mSGLastDisconnectTime OBJECT-TYPE
+	SYNTAX DateAndTime
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Station last disconnection time"
+	::= { vars 1054 }
+
+mSGKeyName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Name of current license key"
+	::= { vars 1055 }
+
+mSGKeyId OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Serial number or user number of current license key"
+	::= { vars 1056 }
+
+mSGNewKeyName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Name of renew license key"
+	::= { vars 1057 }
+
+mSGNewKeyId OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Serial number or user number of renew license key"
+	::= { vars 1058 }
+
+mSGKeyDifference OBJECT-TYPE
+	SYNTAX INTEGER {
+           component(1), -- different components
+           licCount(2)   -- renew key has fewer licenses
+         }
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Describe current key and renew one difference:
+		   component  (renew key has different component list),
+		   licCount  (renew key has fewer licenses)"
+	::= { vars 1059 }
+
+mSGUser OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"User name"
+	::= { vars 1060 }
+
+mSGStationTime OBJECT-TYPE
+	SYNTAX DateAndTime
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Station time"
+	::= { vars 1061 }
+
+mSGPid OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Process id"
+	::= { vars 1062 }
+
+mSGTarget OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Subject of action"
+	::= { vars 1063 }
+
+mSGHipsType OBJECT-TYPE
+	SYNTAX HipsType
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Type of preventive system alert"
+	::= { vars 1064 }
+
+mSGShellGuardType OBJECT-TYPE
+	SYNTAX ShellGuardType
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"List of shell guard types"
+	::= { vars 1065 }
+
+mSGUserAction OBJECT-TYPE
+	SYNTAX TruthValue
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Action initiated by user, true(1) or false(2)"
+	::= { vars 1066 }
+
+mSGDenied OBJECT-TYPE
+	SYNTAX TruthValue
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Related event denied, true(1) or false(2)"
+	::= { vars 1067 }
+
+mSGTotal OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Total count"
+	::= { vars 1068 }
+
+mSGAutoBlockedActCount OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Count of HIPS event blocked automatically"
+	::= { vars 1069 }
+
+mSGUserBlockedActCount OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Count of HIPS event blocked by user"
+	::= { vars 1070 }
+
+mSGUserBlockedHipsType OBJECT-TYPE
+	SYNTAX HipsType
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Type of preventive system alert"
+	::= { vars 1071 }
+
+mSGUserBlockedShellGuard OBJECT-TYPE
+	SYNTAX ShellGuardType
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Sub-type of preventive system alert"
+	::= { vars 1072 }
+
+mSGUserAllowedActCount OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Count of HIPS event allowed by user"
+	::= { vars 1073 }
+
+mSGUserAllowedHipsType OBJECT-TYPE
+	SYNTAX HipsType
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Type of preventive system alert"
+	::= { vars 1074 }
+
+mSGUserAllowedShellGuard OBJECT-TYPE
+	SYNTAX ShellGuardType
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Sub-type of preventive system alert"
+	::= { vars 1075 }
+
+mSGAutoBlockedProc OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"List of the most popular processes blocked automatically"
+	::= { vars 1076 }
+
+mSGUserBlockedProc OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"List of the most popular processes blocked by user"
+	::= { vars 1077 }
+
+mSGUserAllowedProc OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"List of the most popular processes allowed by user"
+	::= { vars 1078 }
+
+mSGIsShellGuard OBJECT-TYPE
+	SYNTAX TruthValue
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Type of hips event is shell guard, true(1) or false(2)"
+	::= { vars 1079 }
+
+mSGUserBlockedIsShellGuard OBJECT-TYPE
+	SYNTAX TruthValue
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Type of hips event blocked by user is shell guard, true(1) or false(2)"
+	::= { vars 1080 }
+
+mSGUserAllowedIsShellGuard OBJECT-TYPE
+	SYNTAX TruthValue
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Type of hips event allowed by user is shell guard, true(1) or false(2)"
+	::= { vars 1081 }
+
+mSGInstanceId OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Device instance ID"
+	::= { vars 1082 }
+
+mSGFriendlyName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Human-readable name"
+	::= { vars 1083 }
+
+mSGDescription OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Description"
+	::= { vars 1084 }
+
+mSGClass OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Class of device"
+	::= { vars 1085 }
+
+mSGCapabilities OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Device characteristics"
+	::= { vars 1086 }
+
+mSGSHA1 OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"SHA-1 hash"
+	::= { vars 1087 }
+
+mSGSHA256 OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"SHA-256 hash"
+	::= { vars 1088 }
+
+mSGDocument OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Document name"
+	::= { vars 1089 }
+
+mSGAddrsCount OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Count of unique IP addresses"
+	::= { vars 1090 }
+
+mSGLicenseLimit OBJECT-TYPE
+	SYNTAX INTEGER {
+           nearLimit(1),  -- license limit will be reached soon
+           reachLimit(2), -- license limit has beeen reached
+           overflow(3)     -- overflow of license exchange detected
+         }
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Description of license limit state:
+		   nearLimit (a little count of free license),
+		   reachLimit (all licenses are used),
+		   overflow (key is propoganated to more objects then it has licenses)"
+	::= { vars 1091 }
+
+mSGFree OBJECT-TYPE
+	SYNTAX Unsigned32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Free count"
+	::= { vars 1092 }
+
+mSGUserSID OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"User SID"
+	::= { vars 1093 }
+
+mSGAppCtlType OBJECT-TYPE
+	SYNTAX AppCtlType
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Application control event type"
+	::= { vars 1094 }
+
+mSGAppCtlAction OBJECT-TYPE
+	SYNTAX AppCtlAction
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Application control action"
+	::= { vars 1095 }
+
+mSGProfile OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Profile name"
+	::= { vars 1096 }
+
+mSGRule OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Rule name"
+	::= { vars 1097 }
+
+mSGTargetSHA256 OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Target SHA-256 hash"
+	::= { vars 1098 }
+
+mSGTestMode OBJECT-TYPE
+	SYNTAX TruthValue
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Event generated in test mode, true(1) or false(2)"
+	::= { vars 1099 }
+
+mSGLink OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Link to some object, e.g. static report"
+	::= { vars 1100 }
+
+
+
+-- ----------------------------------------------------------------------------------------------
+--  alerts as SNMPv2 notifications                                                             --
+-- ----------------------------------------------------------------------------------------------
+
+administratorAuthorizationFailed NOTIFICATION-TYPE
+	OBJECTS {
+		mSGLogin,
+		mSGAddress,
+		mSGLoginErrorCode
+		}
+	STATUS current
+	DESCRIPTION "Administrator authorization failed"
+		::= { alert 1 }
+
+approvedNewbie NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGAdminName,
+		mSGAdminAddress
+		}
+	STATUS current
+	DESCRIPTION "Station approved"
+		::= { alert 2 }
+
+autoApprovedNewbie NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress
+		}
+	STATUS current
+	DESCRIPTION "Access automatically provided to the station"
+		::= { alert 3 }
+
+awaitingApproval NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress
+		}
+	STATUS current
+	DESCRIPTION "Waiting for approval"
+		::= { alert 4 }
+
+cannotAddStation NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGStationName,
+		mSGID
+		}
+	STATUS current
+	DESCRIPTION "Cannot add station"
+		::= { alert 5 }
+
+infection NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		gENServerRecvLinkName,
+		gENServerOriginatorID,
+		gENServerOriginatorName,
+		gENServerRecvLinkID,
+		mSGObjectName,
+		mSGComponent,
+		mSGObjectOwner,
+		mSGRunBy,
+		mSGServerTime,
+		mSGSHA256,
+		mSGInfectionType,
+		mSGVirus,
+		mSGAction,
+		mSGSHA1
+		}
+	STATUS current
+	DESCRIPTION "Infection detected"
+		::= { alert 7 }
+
+installationBad NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGError
+		}
+	STATUS current
+	DESCRIPTION "Installation failed"
+		::= { alert 8 }
+
+installationOK NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress
+		}
+	STATUS current
+	DESCRIPTION "Installation OK"
+		::= { alert 9 }
+
+lowVarFreeSpace NOTIFICATION-TYPE
+	OBJECTS {
+		mSGPath,
+		mSGRequiredSpace,
+		mSGFreeInodes,
+		mSGRequiredInodes,
+		mSGFreeSpace
+		}
+	STATUS current
+	DESCRIPTION "Low disk free space"
+		::= { alert 12 }
+
+newbieNotAllowed NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress
+		}
+	STATUS current
+	DESCRIPTION "Newbie as not allowed"
+		::= { alert 14 }
+
+notSeenForALongTime NOTIFICATION-TYPE
+	OBJECTS {
+		mSGLastSeenFrom,
+		mSGDaysAgo,
+		mSGStationSID,
+		mSGStationDescription,
+		mSGStationID,
+		mSGStationMAC,
+		mSGStationName
+		}
+	STATUS current
+	DESCRIPTION "Long time unseen station"
+		::= { alert 15 }
+
+processingError NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		gENServerRecvLinkName,
+		gENServerOriginatorID,
+		gENServerOriginatorName,
+		gENServerRecvLinkID,
+		mSGObjectName,
+		mSGComponent,
+		mSGObjectOwner,
+		mSGRunBy,
+		mSGServerTime,
+		mSGSHA1,
+		mSGSHA256,
+		mSGError
+		}
+	STATUS current
+	DESCRIPTION "File processing error"
+		::= { alert 16 }
+
+rejectedNewbie NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGAdminAddress,
+		mSGAdminName
+		}
+	STATUS current
+	DESCRIPTION "Station rejected"
+		::= { alert 17 }
+
+srvRepositoryFrozen NOTIFICATION-TYPE
+	OBJECTS {
+		gENProduct,
+		gENFolder,
+		gENNextRevision,
+		gENCurrentRevision
+		}
+	STATUS current
+	DESCRIPTION "Product frozen because of an updating error"
+		::= { alert 19 }
+
+srvRepositoryUpToDate NOTIFICATION-TYPE
+	OBJECTS {
+		gENProduct,
+		gENFolder,
+		gENNextRevision,
+		gENCurrentRevision
+		}
+	STATUS current
+	DESCRIPTION "Product is up-to-date"
+		::= { alert 21 }
+
+srvRepositoryUpdate NOTIFICATION-TYPE
+	OBJECTS {
+		gENProduct,
+		gENFolder,
+		gENNextRevision,
+		gENCurrentRevision,
+		mSGReplaced,
+		mSGDeleted,
+		mSGDeletedCount,
+		mSGAddedCount,
+		mSGReplacedCount,
+		mSGAdded
+		}
+	STATUS current
+	DESCRIPTION "Product has been updated"
+		::= { alert 22 }
+
+srvRepositoryUpdateFailed NOTIFICATION-TYPE
+	OBJECTS {
+		gENProduct,
+		gENFolder,
+		gENNextRevision,
+		gENCurrentRevision,
+		mSGExtendedError,
+		mSGError
+		}
+	STATUS current
+	DESCRIPTION "Product update failed"
+		::= { alert 23 }
+
+stationAlreadyLoggedIn NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGStationName,
+		mSGID,
+		mSGServer
+		}
+	STATUS current
+	DESCRIPTION "Station already logged in"
+		::= { alert 24 }
+
+stationAuthorizationFailed NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGStationName,
+		mSGID,
+		mSGRejected
+		}
+	STATUS current
+	DESCRIPTION "Station authorization failed"
+		::= { alert 25 }
+
+statistics NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		gENServerRecvLinkName,
+		gENServerOriginatorID,
+		gENServerOriginatorName,
+		gENServerRecvLinkID,
+		mSGScanned,
+		mSGInfected,
+		mSGComponent,
+		mSGSpeed,
+		mSGRunBy,
+		mSGErrors,
+		mSGCured,
+		mSGSuspicious,
+		mSGModifications,
+		mSGLocked,
+		mSGMoved,
+		mSGServerTime,
+		mSGRenamed,
+		mSGVirusActivity,
+		mSGDeletedObjs
+		}
+	STATUS current
+	DESCRIPTION "Scan statistics"
+		::= { alert 26 }
+
+tooManyStations NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGStationName,
+		mSGID
+		}
+	STATUS current
+	DESCRIPTION "Too many stations in the network"
+		::= { alert 27 }
+
+unknownAdministrator NOTIFICATION-TYPE
+	OBJECTS {
+		mSGLogin,
+		mSGAddress
+		}
+	STATUS current
+	DESCRIPTION "Unknown administrator"
+		::= { alert 28 }
+
+unknownStation NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGStationName,
+		mSGID,
+		mSGRejected
+		}
+	STATUS current
+	DESCRIPTION "Unknown station"
+		::= { alert 29 }
+
+updateFailed NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGProduct,
+		mSGServerTime
+		}
+	STATUS current
+	DESCRIPTION "Station update failed"
+		::= { alert 30 }
+
+updateWantsReboot NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGProduct,
+		mSGServerTime
+		}
+	STATUS current
+	DESCRIPTION "Station wants to be rebooted to complete update"
+		::= { alert 31 }
+
+loggerWriteError NOTIFICATION-TYPE
+	OBJECTS {
+		mSGError
+		}
+	STATUS current
+	DESCRIPTION "Logger write error"
+		::= { alert 33 }
+
+loggerRotateError NOTIFICATION-TYPE
+	OBJECTS {
+		mSGError
+		}
+	STATUS current
+	DESCRIPTION "Logger rotate error"
+		::= { alert 34 }
+
+testMessage NOTIFICATION-TYPE
+	OBJECTS {
+		mSGTestMessage
+		}
+	STATUS current
+	DESCRIPTION "Test message"
+		::= { alert 35 }
+
+periodicReport NOTIFICATION-TYPE
+	OBJECTS {
+		mSGLink
+		}
+	STATUS current
+	DESCRIPTION "Periodic report"
+		::= { alert 36 }
+
+epidemic NOTIFICATION-TYPE
+	OBJECTS {
+		mSGVirus,
+		mSGInfected
+		}
+	STATUS current
+	DESCRIPTION "Epidemy detected"
+		::= { alert 37 }
+
+serverNotSeenForALongTime NOTIFICATION-TYPE
+	OBJECTS {
+		mSGLastDisconnectTime,
+		mSGStationName
+		}
+	STATUS current
+	DESCRIPTION "Server not seen for a long time"
+		::= { alert 38 }
+
+tooManyDonations NOTIFICATION-TYPE
+	OBJECTS {
+		mSGObjId
+		}
+	STATUS current
+	DESCRIPTION "Too many donations"
+		::= { alert 39 }
+
+donationExpired NOTIFICATION-TYPE
+	OBJECTS {
+		mSGServer,
+		mSGObjId
+		}
+	STATUS current
+	DESCRIPTION "Donation expired"
+		::= { alert 40 }
+
+srvRepositoryUpdateStarted NOTIFICATION-TYPE
+	OBJECTS {
+		gENCurrentRevision,
+		gENFolder,
+		gENProduct
+		}
+	STATUS current
+	DESCRIPTION "Product update started"
+		::= { alert 41 }
+
+tooManyMessages NOTIFICATION-TYPE
+	OBJECTS {
+		mSGType,
+		mSGAddedCount
+		}
+	STATUS current
+	DESCRIPTION "Too many messages"
+		::= { alert 42 }
+
+stationWantsReboot NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGReason
+		}
+	STATUS current
+	DESCRIPTION "Station wants to reboot"
+		::= { alert 43 }
+
+keyExpiration NOTIFICATION-TYPE
+	OBJECTS {
+		mSGExpirationDate,
+		mSGKeyId,
+		mSGExpired,
+		mSGKeyName
+		}
+	STATUS current
+	DESCRIPTION "Key expiration"
+		::= { alert 44 }
+
+keyRenewSuccess NOTIFICATION-TYPE
+	OBJECTS {
+		mSGNewKeyId,
+		mSGKeyId,
+		mSGNewKeyName,
+		mSGKeyName
+		}
+	STATUS current
+	DESCRIPTION "Key renew success"
+		::= { alert 45 }
+
+keyToRenewReceived NOTIFICATION-TYPE
+	OBJECTS {
+		mSGKeyId,
+		mSGKeyDifference,
+		mSGNewKeyId,
+		mSGExpirationDate,
+		mSGNewKeyName,
+		mSGExpired,
+		mSGKeyName
+		}
+	STATUS current
+	DESCRIPTION "Received key to renew, but components differs"
+		::= { alert 46 }
+
+deviceBlocked NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGCapabilities,
+		mSGUser,
+		mSGClass,
+		mSGInstanceId,
+		mSGFriendlyName,
+		mSGDescription
+		}
+	STATUS current
+	DESCRIPTION "Device blocked"
+		::= { alert 47 }
+
+keyBlocked NOTIFICATION-TYPE
+	OBJECTS {
+		mSGKeyId,
+		mSGKeyName
+		}
+	STATUS current
+	DESCRIPTION "License key have been blocked by GUS"
+		::= { alert 48 }
+
+hipsEvent NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		gENServerRecvLinkName,
+		gENServerOriginatorID,
+		gENServerOriginatorName,
+		gENServerRecvLinkID,
+		mSGPath,
+		mSGIsShellGuard,
+		mSGTotal,
+		mSGUser,
+		mSGSHA1,
+		mSGSHA256,
+		mSGShellGuardType,
+		mSGStationTime,
+		mSGAdminName,
+		mSGTarget,
+		mSGUserAction,
+		mSGDenied,
+		mSGHipsType,
+		mSGPid
+		}
+	STATUS current
+	DESCRIPTION "HIPS event from station"
+		::= { alert 50 }
+
+hipsSummary NOTIFICATION-TYPE
+	OBJECTS {
+		mSGUserAllowedProc,
+		mSGUserBlockedHipsType,
+		mSGUserBlockedShellGuard,
+		mSGUserAllowedHipsType,
+		mSGAutoBlockedProc,
+		mSGUserBlockedActCount,
+		mSGUserAllowedActCount,
+		mSGHipsType,
+		mSGUserAllowedShellGuard,
+		mSGShellGuardType,
+		mSGUserBlockedProc,
+		mSGUserAllowedIsShellGuard,
+		mSGUserBlockedIsShellGuard,
+		mSGAutoBlockedActCount,
+		mSGTotal,
+		mSGIsShellGuard
+		}
+	STATUS current
+	DESCRIPTION "Summary information about HIPS events"
+		::= { alert 51 }
+
+knownInfection NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		gENServerRecvLinkName,
+		gENServerOriginatorID,
+		gENServerOriginatorName,
+		gENServerRecvLinkID,
+		mSGObjectName,
+		mSGComponent,
+		mSGObjectOwner,
+		mSGRunBy,
+		mSGServerTime,
+		mSGSHA256,
+		mSGInfectionType,
+		mSGVirus,
+		mSGAction,
+		mSGSHA1,
+		mSGDocument
+		}
+	STATUS current
+	DESCRIPTION "Known infection detected"
+		::= { alert 52 }
+
+knownProcessingError NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		gENServerRecvLinkName,
+		gENServerOriginatorID,
+		gENServerOriginatorName,
+		gENServerRecvLinkID,
+		mSGObjectName,
+		mSGComponent,
+		mSGObjectOwner,
+		mSGRunBy,
+		mSGServerTime,
+		mSGSHA1,
+		mSGSHA256,
+		mSGError,
+		mSGDocument
+		}
+	STATUS current
+	DESCRIPTION "Known file processing error"
+		::= { alert 53 }
+
+knownHipsEvent NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		gENServerRecvLinkName,
+		gENServerOriginatorID,
+		gENServerOriginatorName,
+		gENServerRecvLinkID,
+		mSGPath,
+		mSGIsShellGuard,
+		mSGTotal,
+		mSGUser,
+		mSGSHA1,
+		mSGSHA256,
+		mSGShellGuardType,
+		mSGStationTime,
+		mSGAdminName,
+		mSGTarget,
+		mSGUserAction,
+		mSGDenied,
+		mSGHipsType,
+		mSGPid,
+		mSGDocument
+		}
+	STATUS current
+	DESCRIPTION "Known HIPS event from station"
+		::= { alert 54 }
+
+connectionTerminatedAbnormally NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		mSGType,
+		mSGTotal
+		}
+	STATUS current
+	DESCRIPTION "Connection terminated abnormally"
+		::= { alert 55 }
+
+tooManyDisconnects NOTIFICATION-TYPE
+	OBJECTS {
+		mSGTotal,
+		mSGAddrsCount
+		}
+	STATUS current
+	DESCRIPTION "Too many connections terminated abnormally"
+		::= { alert 56 }
+
+licenseLimit NOTIFICATION-TYPE
+	OBJECTS {
+		mSGLicensed,
+		mSGTotal,
+		mSGKeyId,
+		mSGLicenseLimit,
+		mSGKeyName
+		}
+	STATUS current
+	DESCRIPTION "License limit"
+		::= { alert 57 }
+
+nearMaxStations NOTIFICATION-TYPE
+	OBJECTS {
+		mSGLicensed,
+		mSGTotal,
+		gENStationPrimaryGroupID,
+		mSGFree,
+		gENStationPrimaryGroupName
+		}
+	STATUS current
+	DESCRIPTION "Number of stations is close to limit"
+		::= { alert 58 }
+
+appControlEvent NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		gENServerRecvLinkName,
+		gENServerOriginatorID,
+		gENServerOriginatorName,
+		gENServerRecvLinkID,
+		mSGUser,
+		mSGTarget,
+		mSGStationTime,
+		mSGSHA256,
+		mSGRule,
+		mSGTestMode,
+		mSGTargetSHA256,
+		mSGAppCtlType,
+		mSGAppCtlAction,
+		mSGPath,
+		mSGProfile
+		}
+	STATUS current
+	DESCRIPTION "Application control event from station"
+		::= { alert 59 }
+
+knownAppControlEvent NOTIFICATION-TYPE
+	OBJECTS {
+		gENStationID,
+		gENStationSID,
+		gENStationPrimaryGroupName,
+		gENLoginTime,
+		gENStationMAC,
+		gENStationName,
+		gENStationDescription,
+		gENStationLDAPDN,
+		gENStationPrimaryGroupID,
+		gENStationAddress,
+		gENServerRecvLinkName,
+		gENServerOriginatorID,
+		gENServerOriginatorName,
+		gENServerRecvLinkID,
+		mSGUser,
+		mSGTarget,
+		mSGStationTime,
+		mSGSHA256,
+		mSGRule,
+		mSGTestMode,
+		mSGTargetSHA256,
+		mSGAppCtlType,
+		mSGAppCtlAction,
+		mSGPath,
+		mSGProfile,
+		mSGDocument
+		}
+	STATUS current
+	DESCRIPTION "Known application control event from station"
+		::= { alert 60 }
+
+appControlStorm NOTIFICATION-TYPE
+	OBJECTS {
+		mSGTotal,
+		mSGProfile
+		}
+	STATUS current
+	DESCRIPTION "Application control events storm detected"
+		::= { alert 61 }
+
+srvRepositoryConcurrentUpdate NOTIFICATION-TYPE
+	STATUS current
+	DESCRIPTION "Concurrent repository update in progress"
+		::= { alert 62 }
+
+keyRenewFailed NOTIFICATION-TYPE
+	OBJECTS {
+		mSGError
+		}
+	STATUS current
+	DESCRIPTION "Key renew connection error"
+		::= { alert 63 }
+
+
+
+-- ----------------------------------------------------------------------------------------------
+--  groups                                                                                     --
+-- ----------------------------------------------------------------------------------------------
+
+drwebEsuiteNotificationVarsGroup OBJECT-GROUP
+	OBJECTS {
+		admin,
+		 mSGAddress,
+		 mSGLogin,
+		 gENStationName,
+		 gENStationID,
+		 gENStationAddress,
+		 gENLoginTime,
+		 gENStationPrimaryGroupName,
+		 gENStationPrimaryGroupID,
+		 gENStationDescription,
+		 gENStationMAC,
+		 gENStationSID,
+		 gENStationLDAPDN,
+		 mSGObjectName,
+		 mSGObjectOwner,
+		 mSGID,
+		 mSGStationName,
+		 mSGStationMAC,
+		 mSGStationSID,
+		 mSGProduct,
+		 mSGServerTime,
+		 gENProduct,
+		 gENFolder,
+		 gENCurrentRevision,
+		 gENNextRevision,
+		 gENFile,
+		 gENServerOriginatorID,
+		 gENServerOriginatorName,
+		 gENServerRecvLinkID,
+		 gENServerRecvLinkName,
+		 mSGError,
+		 mSGAdminAddress,
+		 mSGAdminName,
+		 mSGReason,
+		 mSGType,
+		 mSGAction,
+		 mSGInfectionType,
+		 mSGVirus,
+		 mSGExpirationDate,
+		 mSGExpired,
+		 mSGObjId,
+		 mSGObjName,
+		 mSGObjType,
+		 mSGLicensed,
+		 mSGUsed,
+		 mSGFreeInodes,
+		 mSGFreeSpace,
+		 mSGPath,
+		 mSGRequiredInodes,
+		 mSGRequiredSpace,
+		 mSGPercent,
+		 mSGDaysAgo,
+		 mSGLastSeenFrom,
+		 mSGStationID,
+		 mSGStationDescription,
+		 mSGAdded,
+		 mSGAddedCount,
+		 mSGDeleted,
+		 mSGDeletedCount,
+		 mSGReplaced,
+		 mSGReplacedCount,
+		 mSGExtendedError,
+		 mSGServer,
+		 mSGComponent,
+		 mSGCured,
+		 mSGDeletedObjs,
+		 mSGErrors,
+		 mSGInfected,
+		 mSGLocked,
+		 mSGModifications,
+		 mSGMoved,
+		 mSGRenamed,
+		 mSGRunBy,
+		 mSGScanned,
+		 mSGSpeed,
+		 mSGSuspicious,
+		 mSGVirusActivity,
+		 mSGRejected,
+		 mSGLoginErrorCode,
+		 mSGTestMessage,
+		 mSGAttachment,
+		 mSGAttachmentType,
+		 mSGLastDisconnectTime,
+		 mSGKeyName,
+		 mSGKeyId,
+		 mSGNewKeyName,
+		 mSGNewKeyId,
+		 mSGKeyDifference,
+		 mSGUser,
+		 mSGStationTime,
+		 mSGPid,
+		 mSGTarget,
+		 mSGHipsType,
+		 mSGShellGuardType,
+		 mSGUserAction,
+		 mSGDenied,
+		 mSGTotal,
+		 mSGAutoBlockedActCount,
+		 mSGUserBlockedActCount,
+		 mSGUserBlockedHipsType,
+		 mSGUserBlockedShellGuard,
+		 mSGUserAllowedActCount,
+		 mSGUserAllowedHipsType,
+		 mSGUserAllowedShellGuard,
+		 mSGAutoBlockedProc,
+		 mSGUserBlockedProc,
+		 mSGUserAllowedProc,
+		 mSGIsShellGuard,
+		 mSGUserBlockedIsShellGuard,
+		 mSGUserAllowedIsShellGuard,
+		 mSGInstanceId,
+		 mSGFriendlyName,
+		 mSGDescription,
+		 mSGClass,
+		 mSGCapabilities,
+		 mSGSHA1,
+		 mSGSHA256,
+		 mSGDocument,
+		 mSGAddrsCount,
+		 mSGLicenseLimit,
+		 mSGFree,
+		 mSGUserSID,
+		 mSGAppCtlType,
+		 mSGAppCtlAction,
+		 mSGProfile,
+		 mSGRule,
+		 mSGTargetSHA256,
+		 mSGTestMode,
+		 mSGLink
+	}
+	STATUS current
+	DESCRIPTION "A collection of objects providing information about Dr.Web Enterprise Suite."
+	::= { groups 1 }
+
+
+drwebEsuiteNotificationGroup NOTIFICATION-GROUP
+	NOTIFICATIONS {
+		 administratorAuthorizationFailed,
+		 approvedNewbie,
+		 autoApprovedNewbie,
+		 awaitingApproval,
+		 cannotAddStation,
+		 infection,
+		 installationBad,
+		 installationOK,
+		 lowVarFreeSpace,
+		 newbieNotAllowed,
+		 notSeenForALongTime,
+		 processingError,
+		 rejectedNewbie,
+		 srvRepositoryFrozen,
+		 srvRepositoryUpToDate,
+		 srvRepositoryUpdate,
+		 srvRepositoryUpdateFailed,
+		 stationAlreadyLoggedIn,
+		 stationAuthorizationFailed,
+		 statistics,
+		 tooManyStations,
+		 unknownAdministrator,
+		 unknownStation,
+		 updateFailed,
+		 updateWantsReboot,
+		 loggerWriteError,
+		 loggerRotateError,
+		 testMessage,
+		 periodicReport,
+		 epidemic,
+		 serverNotSeenForALongTime,
+		 tooManyDonations,
+		 donationExpired,
+		 srvRepositoryUpdateStarted,
+		 tooManyMessages,
+		 stationWantsReboot,
+		 keyExpiration,
+		 keyRenewSuccess,
+		 keyToRenewReceived,
+		 deviceBlocked,
+		 keyBlocked,
+		 hipsEvent,
+		 hipsSummary,
+		 knownInfection,
+		 knownProcessingError,
+		 knownHipsEvent,
+		 connectionTerminatedAbnormally,
+		 tooManyDisconnects,
+		 licenseLimit,
+		 nearMaxStations,
+		 appControlEvent,
+		 knownAppControlEvent,
+		 appControlStorm,
+		 srvRepositoryConcurrentUpdate,
+		 keyRenewFailed
+	}
+	STATUS current
+	DESCRIPTION "A collection of Dr.Web Enterprise Suite notifications."
+	::= { groups 2 }
+
+
+
+END
