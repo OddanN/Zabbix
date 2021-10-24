@@ -1,0 +1,3 @@
+[submodule "mib2zabbix"]
+	path = mib2zabbix
+	url = git@github.com:OddanN/mib2zabbix.git
